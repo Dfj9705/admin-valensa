@@ -158,7 +158,7 @@ class ProductoResource extends Resource
                 TextColumn::make('costo_total')
                     ->label('Costo total')
                     ->state(function ($record) {
-                        return (float) $record->pro_cantidad * (float) $record->pro_precio_costo;
+                        return (float) $record->pro_stock * (float) $record->pro_precio_costo;
                     })
                     ->money('GTQ')
                     ->sortable(),
@@ -175,13 +175,13 @@ class ProductoResource extends Resource
 
                 TextColumn::make('total_min')
                     ->label('Total min')
-                    ->state(fn($record) => (float) $record->pro_cantidad * (float) $record->pro_precio_venta_min)
+                    ->state(fn($record) => (float) $record->pro_stock * (float) $record->pro_precio_venta_min)
                     ->money('GTQ')
                     ->toggleable(),
 
                 TextColumn::make('total_max')
                     ->label('Total max')
-                    ->state(fn($record) => (float) $record->pro_cantidad * (float) $record->pro_precio_venta_max)
+                    ->state(fn($record) => (float) $record->pro_stock * (float) $record->pro_precio_venta_max)
                     ->money('GTQ')
                     ->toggleable(),
 
