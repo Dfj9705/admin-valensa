@@ -151,7 +151,8 @@ class ProductoResource extends Resource
 
                 TextColumn::make('pro_precio_costo')
                     ->label('Costo unit.')
-                    ->money('GTQ')
+                    ->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')
                     ->sortable()
                     ->toggleable(),
 
@@ -160,29 +161,34 @@ class ProductoResource extends Resource
                     ->state(function ($record) {
                         return (float) $record->pro_stock * (float) $record->pro_precio_costo;
                     })
-                    ->money('GTQ')
+                    ->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')
                     ->sortable(),
 
                 TextColumn::make('pro_precio_venta_min')
                     ->label('Venta min (unit.)')
-                    ->money('GTQ')
+                    ->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')
                     ->toggleable(),
 
                 TextColumn::make('pro_precio_venta_max')
                     ->label('Venta max (unit.)')
-                    ->money('GTQ')
+                    ->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')
                     ->toggleable(),
 
                 TextColumn::make('total_min')
                     ->label('Total min')
                     ->state(fn($record) => (float) $record->pro_stock * (float) $record->pro_precio_venta_min)
-                    ->money('GTQ')
+                    ->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')
                     ->toggleable(),
 
                 TextColumn::make('total_max')
                     ->label('Total max')
                     ->state(fn($record) => (float) $record->pro_stock * (float) $record->pro_precio_venta_max)
-                    ->money('GTQ')
+                    ->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')
                     ->toggleable(),
 
                 IconColumn::make('pro_activo')
