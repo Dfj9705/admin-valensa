@@ -121,7 +121,6 @@ class ProductoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->defaultSort('pro_nombre', 'asc')
             ->columns([
                 ImageColumn::make('pro_imagenes')
                     ->label('Img')
@@ -204,8 +203,10 @@ class ProductoResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
+            ])->bulkActions([
+                Tables\Actions\DeleteBulkAction::make(),
             ])
-            ->defaultSort('pro_id', 'desc');
+            ->defaultSort('pro_nombre', 'asc');
     }
 
     public static function getRelations(): array
