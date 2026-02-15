@@ -23,16 +23,20 @@ class LatestMovements extends BaseWidget
                     ->label('Producto'),
 
                 Tables\Columns\BadgeColumn::make('mop_tipo')
+                    ->label('Tipo')
                     ->colors([
                         'success' => 'entrada',
                         'danger' => 'salida',
                     ]),
 
                 Tables\Columns\TextColumn::make('mop_cantidad')
-                    ->label('Cantidad'),
+                    ->label('Cantidad')
+                    ->numeric(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime('d/m/Y H:i'),
+                    ->label('Fecha')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
             ]);
     }
 }
