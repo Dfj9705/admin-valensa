@@ -121,6 +121,7 @@ class ProductoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort('pro_nombre', 'asc')
             ->columns([
                 ImageColumn::make('pro_imagenes')
                     ->label('Img')
