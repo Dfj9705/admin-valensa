@@ -236,7 +236,7 @@ class ClienteResource extends Resource
                     DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('id', 'desc');
+            ->defaultSort('cli_id', 'desc');
     }
 
     public static function getPages(): array
