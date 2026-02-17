@@ -39,6 +39,8 @@ class Producto extends Model
             COALESCE(SUM(CASE WHEN mop_tipo = 'entrada' THEN mop_cantidad ELSE 0 END), 0)
             -
             COALESCE(SUM(CASE WHEN mop_tipo = 'salida' THEN mop_cantidad ELSE 0 END), 0)
+            -
+            COALESCE(SUM(CASE WHEN mop_tipo = 'venta' THEN mop_cantidad ELSE 0 END), 0)
             AS stock
         ")
             ->value('stock') ?? 0;

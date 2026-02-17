@@ -22,6 +22,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\BulkActionGroup;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
@@ -51,7 +52,7 @@ class ClienteResource extends Resource
             Section::make('Identificación')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('nit')
+                    TextInput::make('cli_nit')
                         ->label('NIT')
                         ->helperText('Con o sin guiones. Ej: 1234567-8')
                         ->maxLength(20)
@@ -59,10 +60,11 @@ class ClienteResource extends Resource
                         ->rules(fn($record) => [
                             'nullable',
                             'max:20',
-                            Rule::unique('clientes', 'cli_nit')->ignore($record),
+                            Rule::unique('clientes', 'cli_nit')
+                                ->ignore($record)
                         ]),
 
-                    TextInput::make('cui')
+                    TextInput::make('cli_cui')
                         ->label('CUI')
                         ->helperText('Con o sin espacios/guiones. Ej: 1234 56789 0101')
                         ->maxLength(20)
@@ -70,7 +72,8 @@ class ClienteResource extends Resource
                         ->rules(fn($record) => [
                             'nullable',
                             'max:20',
-                            Rule::unique('clientes', 'cli_cui')->ignore($record),
+                            Rule::unique('clientes', 'cli_cui')
+                                ->ignore($record)
                         ]),
 
                     Actions::make([
@@ -79,8 +82,8 @@ class ClienteResource extends Resource
                             ->disabled()
                             ->icon('heroicon-o-magnifying-glass')
                             ->action(function (Get $get, Set $set) {
-                                $nit = self::cleanId((string) $get('nit'));
-                                $cui = self::cleanId((string) $get('cui'));
+                                $nit = self::cleanId((string) $get('cli_nit'));
+                                $cui = self::cleanId((string) $get('cli_cui'));
 
                                 if (blank($nit) && blank($cui)) {
                                     Notification::make()
@@ -111,17 +114,17 @@ class ClienteResource extends Resource
                                 $datos = data_get($response, 'datos.0', []);
 
                                 if (filled($nit)) {
-                                    $set('nit', data_get($datos, 'nit', $nit));
+                                    $set('cli_nit', data_get($datos, 'nit', $nit));
                                 }
 
                                 $nombreTekra = (string) (data_get($datos, 'nombre') ?? data_get($datos, 'nombre_completo') ?? '');
                                 $nombreLimpio = trim(preg_replace('/\s+/', ' ', str_replace(',', ' ', $nombreTekra)));
 
                                 if ($nombreLimpio !== '') {
-                                    $set('tax_name', $nombreLimpio);
+                                    $set('cli_nombre', $nombreLimpio);
 
-                                    if (blank(trim((string) $get('name')))) {
-                                        $set('name', $nombreLimpio);
+                                    if (blank(trim((string) $get('cli_nombre')))) {
+                                        $set('cli_nombre', $nombreLimpio);
                                     }
                                 }
 
@@ -230,6 +233,7 @@ class ClienteResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
+                DeleteAction::make(),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
