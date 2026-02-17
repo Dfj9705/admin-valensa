@@ -184,7 +184,7 @@ class VentaResource extends Resource
                             ->live()
                             ->reactive()
                             ->prefix('Q')
-                            ->disabled(),
+                            ->readOnly(),
 
                         TextInput::make('ven_tax')
                             ->label('IVA')
@@ -192,7 +192,7 @@ class VentaResource extends Resource
                             ->live()
                             ->reactive()
                             ->prefix('Q')
-                            ->disabled(),
+                            ->readOnly(),
 
                         TextInput::make('ven_total')
                             ->label('Total')
@@ -200,7 +200,7 @@ class VentaResource extends Resource
                             ->live()
                             ->reactive()
                             ->prefix('Q')
-                            ->disabled(),
+                            ->readOnly(),
                     ]),
             ]);
     }
