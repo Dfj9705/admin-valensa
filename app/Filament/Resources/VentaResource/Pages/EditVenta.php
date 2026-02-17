@@ -39,11 +39,11 @@ class EditVenta extends EditRecord
                             ->send();
 
                         $this->refreshFormData([
-                            'status',
-                            'subtotal',
-                            'tax',
-                            'total',
-                            'confirmed_at',
+                            'ven_estado',
+                            'ven_subtotal',
+                            'ven_tax',
+                            'ven_total',
+                            'ven_confirmed_at',
                         ]);
                     } catch (Throwable $e) {
                         Notification::make()
