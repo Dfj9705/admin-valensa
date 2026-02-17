@@ -45,7 +45,7 @@ class VentaResource extends Resource
                             ->relationship('cliente', 'cli_nombre')
                             ->label('Cliente')
                             ->searchable()
-                            ->disabled(fn($record) => $record?->ven_estado !== 'draft')
+                            ->disabled(fn($record) => $record && $record->ven_estado !== 'draft')
                             ->options(function () {
                                 return Cliente::where('cli_activo', true)->pluck('cli_nombre', 'cli_id');
                             })
@@ -81,7 +81,7 @@ class VentaResource extends Resource
                     ->columnSpanFull()
                     ->addActionLabel('Agregar producto')
                     ->columns(12)
-                    ->disabled(fn($record) => $record?->ven_estado !== 'draft')
+                    ->disabled(fn($record) => $record && $record->ven_estado !== 'draft')
                     ->schema([
 
                         Select::make('pro_id')
