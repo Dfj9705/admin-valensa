@@ -40,8 +40,9 @@ class Venta extends Model
         'ven_fel_motivo_anulacion',
 
         // Auditoría
-        'created_by',
-        'updated_by',
+
+        'ven_created_by',
+        'ven_updated_by',
     ];
 
     protected $casts = [

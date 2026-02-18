@@ -3,6 +3,7 @@
 namespace App\Services\Tekra;
 
 use App\Models\Sale;
+use App\Models\Venta;
 use Illuminate\Support\Str;
 use SoapClient;
 use SoapFault;
@@ -10,9 +11,9 @@ use SoapVar;
 
 class TekraFelService
 {
-  public function certificarFactura(Sale $sale): array
+  public function certificarFactura(Venta $venta): array
   {
-    $xml = $this->buildFacturaXml($sale);
+    $xml = $this->buildFacturaXml($venta);
     logger($xml);
 
     $wsdl = config('services.tekra_fel.wsdl');
@@ -91,9 +92,9 @@ class TekraFelService
     }
   }
 
-  private function buildFacturaXml(Sale $sale): string
+  private function buildFacturaXml(Venta $venta): string
   {
-    $sale->load('customer', 'items');
+    $venta->load('cliente', 'productos');
 
     // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
     $emisorNit = config('fel.emisor_nit', '107346834');
@@ -101,9 +102,9 @@ class TekraFelService
     $emisorAfiliacion = config('fel.emisor_iva', 'GEN');
     $establecimiento = config('fel.emisor_establecimiento', '1');
 
-    $receptorId = $sale->customer?->nit ?: ($sale->customer?->cui ?: 'CF');
-    $receptorNombre = $sale->customer?->tax_name ?: ($sale->customer?->name ?: 'CONSUMIDOR FINAL');
-    $correo = $sale->customer?->email ?: '';
+    $receptorId = $venta->cliente?->cli_nit ?: ($venta->cliente?->cli_cui ?: 'CF');
+    $receptorNombre = $venta->cliente?->cli_nombre ?: ($venta->cliente?->cli_nombre ?: 'CONSUMIDOR FINAL');
+    $correo = $venta->cliente?->cli_email ?: '';
 
     $numeroAcceso = random_int(100000000, 999999999); // 9 dígitos (SAT)
 
@@ -113,11 +114,11 @@ class TekraFelService
     $totalImpuestoIva = 0.0;
     $granTotal = 0.0;
 
-    foreach ($sale->items as $idx => $item) {
+    foreach ($venta->productos as $idx => $producto) {
       $linea = $idx + 1;
-      $cantidad = (float) $item->qty;
-      $precioUnit = round((float) $item->unit_price, 2);
-      $descuento = round((float) $item->discount, 2);
+      $cantidad = (float) $producto->qty;
+      $precioUnit = round((float) $producto->unit_price, 2);
+      $descuento = round((float) $producto->discount, 2);
       $precio = round($cantidad * $precioUnit, 2);
       $precioFinal = round($precio - $descuento, 2);
 
@@ -129,7 +130,7 @@ class TekraFelService
       $totalImpuestoIva += $montoImpuesto;
       $granTotal += $precioFinal;
 
-      $desc = htmlspecialchars($item->description_snapshot ?? 'Item', ENT_XML1);
+      $desc = htmlspecialchars($producto->description_snapshot ?? 'Item', ENT_XML1);
 
       $itemsXml .= <<<XML
 <dte:Item NumeroLinea="{$linea}" BienOServicio="B">
@@ -155,7 +156,7 @@ XML;
     $granTotal = round($granTotal, 5);
 
     // DECertificador: identificador único para evitar doble certificación 
-    $deCertificador = 'SALE-ARMERIA-' . $sale->id;
+    $deCertificador = 'SALE-VALENSA-' . $venta->ven_id;
 
     // Nota: el XML debe ir en CDATA y cuidar caracteres (& debe ir como &amp;) 
     return <<<XML
@@ -214,9 +215,9 @@ XML;
 XML;
   }
 
-  public function anularFactura(Sale $sale, string $motivo): array
+  public function anularFactura(Venta $venta, string $motivo): array
   {
-    $xml = $this->buildAnulacionXML($sale, $motivo);
+    $xml = $this->buildAnulacionXML($venta, $motivo);
 
     $wsdl = config('services.tekra_fel.wsdl');
 

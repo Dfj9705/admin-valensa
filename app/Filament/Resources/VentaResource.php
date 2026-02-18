@@ -9,6 +9,7 @@ use App\Models\Producto;
 use App\Models\Venta;
 use Filament\Forms;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -22,6 +23,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\HtmlString;
 
 class VentaResource extends Resource
 {
@@ -204,6 +206,74 @@ class VentaResource extends Resource
                             ->reactive()
                             ->prefix('Q')
                             ->readOnly(),
+                    ]),
+
+                Section::make('Información FEL')
+                    ->columns(4)
+                    ->schema([
+                        TextInput::make('ven_fel_uuid')
+                            ->label('UUID')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_serie')
+                            ->label('Serie')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_numero')
+                            ->label('Número')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_fecha_hora_certificacion')
+                            ->label('Fecha y Hora de Certificación')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_nit_certificador')
+                            ->label('NIT Certificador')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_nombre_certificador')
+                            ->label('Nombre Certificador')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_estado_documento')
+                            ->label('Estado Documento')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_nombre_receptor')
+                            ->label('Nombre Receptor')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_fecha_hora_emision')
+                            ->label('Fecha y Hora de Emisión')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        TextInput::make('ven_fel_status')
+                            ->label('Estado FEL')
+                            ->disabled()
+                            ->dehydrated(),
+
+                        Placeholder::make('qr_preview')
+                            ->label('QR FEL')
+                            ->columnSpanFull()
+                            ->content(function ($record) {
+                                if (!$record?->ven_fel_qr) {
+                                    return 'Sin QR';
+                                }
+
+                                return new HtmlString(
+                                    '<img src="data:image/png;base64,' . $record->ven_fel_qr . '" 
+                  style="max-width:200px; border:1px solid #ccc; padding:5px;" />'
+                                );
+                            }),
                     ]),
             ]);
     }
