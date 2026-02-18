@@ -37,6 +37,8 @@ class Producto extends Model
         return (int) $this->movimientos()
             ->selectRaw("
             COALESCE(SUM(CASE WHEN mop_tipo = 'entrada' THEN mop_cantidad ELSE 0 END), 0)
+            + 
+            COALESCE(SUM(CASE WHEN mop_tipo = 'devolucion' THEN mop_cantidad ELSE 0 END), 0)
             -
             COALESCE(SUM(CASE WHEN mop_tipo = 'salida' THEN mop_cantidad ELSE 0 END), 0)
             -

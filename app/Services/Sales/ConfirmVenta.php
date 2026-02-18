@@ -122,7 +122,7 @@ class ConfirmVenta
             ]);
         }
 
-        $venta->load('items.producto');
+        $venta->load('productos');
 
         if ($venta->productos->isEmpty()) {
             throw ValidationException::withMessages([
@@ -138,12 +138,20 @@ class ConfirmVenta
                     continue;
                 }
 
-                $qty = (float) ($item->vpr_qty ?? $item->qty ?? 0);
+                $qty = (float) ($producto->qty ?? 0);
                 if ($qty <= 0) {
                     continue;
                 }
 
-
+                ProductoMovimiento::create([
+                    'pro_id' => $producto->pro_id,
+                    'mop_tipo' => 'devolucion',
+                    'mop_cantidad' => $qty,
+                    'mop_referencia_tipo' => 'VENTA',
+                    'mop_referencia_id' => $venta->ven_id,
+                    'mop_fecha' => now(),
+                    'mop_observacion' => 'Venta anulada',
+                ]);
             }
 
             $venta->update([
@@ -151,7 +159,7 @@ class ConfirmVenta
                 'updated_by' => $userId,
             ]);
 
-            return $venta->fresh(['items.producto']);
+            return $venta->fresh(['productos']);
         });
     }
 

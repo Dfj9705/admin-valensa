@@ -33,8 +33,8 @@ return [
 
     'tekra' => [
         'base_url' => env('TEKRA_BASE_URL', 'https://apiseguimiento.tekra.com.gt'),
-        'user' => env('TEKRA_USER'),
-        'pass' => env('TEKRA_PASS'),
+        'user' => env('TEKRA_USER2'),
+        'pass' => env('TEKRA_PASS2'),
         'empresa' => env('TEKRA_EMPRESA', 1),
         'cliente' => env('TEKRA_CLIENTE'),
         'contrato' => env('TEKRA_CONTRATO'),

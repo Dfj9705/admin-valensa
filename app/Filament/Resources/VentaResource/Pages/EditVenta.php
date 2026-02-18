@@ -9,6 +9,7 @@ use App\Services\Tekra\TekraFelService;
 use Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Mpdf\Mpdf;
@@ -143,7 +144,7 @@ class EditVenta extends EditRecord
                             $nitCertificador = $resultRaw->NITCertificador;
                             $nombreCertificador = $resultRaw->NombreCertificador;
                             $estadoDocumento = $resultRaw->EstadoDocumento;
-                            $nombreReceptor = $resultRaw->NombreReceptor ?? $venta->cliente->cli_nombre;
+                            $nombreReceptor = $venta->cliente->cli_nombre;
                             $fechaHoraEmision = $resultRaw->FechaHoraEmision;
                         }
 
@@ -179,7 +180,7 @@ class EditVenta extends EditRecord
                             ->success()
                             ->send();
                         $this->record = $this->record->fresh();
-                        $this->refreshFormData(['ven_estado', 'fel_uuid', 'fel_serie', 'fel_numero', 'fel_fecha_hora_certificacion', 'fel_nit_certificador', 'fel_nombre_certificador', 'fel_estado_documento', 'fel_nombre_receptor', 'fel_fecha_hora_emision', 'fel_status']);
+                        $this->refreshFormData(['ven_estado', 'ven_fel_uuid', 'ven_fel_serie', 'ven_fel_numero', 'ven_fel_fecha_hora_certificacion', 'ven_fel_nit_certificador', 'ven_fel_nombre_certificador', 'ven_fel_estado_documento', 'ven_fel_nombre_receptor', 'ven_fel_fecha_hora_emision', 'ven_fel_status']);
 
                     } catch (Throwable $e) {
                         Notification::make()
@@ -225,6 +226,138 @@ class EditVenta extends EditRecord
 
                     $this->redirect(Storage::disk('public')->url($relativePath));
                 }),
+
+            Action::make('anulation')
+                ->label('Anular factura')
+                ->color('danger')
+                ->icon('heroicon-o-no-symbol')
+                ->requiresConfirmation()
+                ->form([
+                    TextInput::make('motivo')
+                        ->label('Motivo de anulación')
+                        ->required()
+                        ->maxLength(255),
+                ])
+                ->visible(fn() => $this->record->ven_estado === 'certified' && !empty($this->record->ven_fel_uuid))
+                ->action(function ($data) {
+                    try {
+                        $venta = $this->record->fresh(['cliente']);
+
+                        $certificador = new TekraFelService();
+                        $resp = $certificador->anularFactura($venta, $data['motivo']);
+
+                        $raw = $resp['raw'] ?? null;
+                        $resultadoStr = (string) ($resp['resultado'] ?? '');
+                        $anulacionXmlEscapado = (string) ($resp['documento_certificado'] ?? '');
+                        $pdfBase64 = trim((string) ($resp['pdf_base64'] ?? ''));
+
+                        // Evita: Object of class stdClass...
+                        if ($raw) {
+                            logger('ANULACION RAW', (array) $raw);
+                        }
+
+                        // 1) Si ResultadoAnulacion es JSON (como certificación)
+                        $resultadoJson = json_decode($resultadoStr);
+
+                        if ($resultadoJson && ($resultadoJson->error ?? null) == 1) {
+                            foreach (($resultadoJson->frases ?? []) as $msg) {
+                                Notification::make()
+                                    ->title((string) $msg)
+                                    ->warning()
+                                    ->send();
+                            }
+                            return;
+                        }
+
+                        // 2) Si no hay JSON, intentamos validar por XML “AnulacionCertificada”
+                        // viene escapado (&lt; &gt;), primero lo decodificamos
+                        $anulacionXml = '';
+                        if ($anulacionXmlEscapado !== '') {
+                            $anulacionXml = html_entity_decode($anulacionXmlEscapado, ENT_QUOTES | ENT_XML1, 'UTF-8');
+
+                            // opcional: guardarlo para auditoría
+                            // Storage::disk('public')->put("fel/anulacion-sale-{$sale->id}.xml", $anulacionXml);
+                        }
+
+                        // 3) Guardar PDF si vino
+                        if ($pdfBase64 !== '') {
+                            $pdfPath = "fel/anulacion-sale-{$venta->ven_id}.pdf";
+                            Storage::disk('public')->put($pdfPath, base64_decode($pdfBase64));
+                        }
+
+                        // 4) Actualizar estados (ajusta nombres de columnas a tu tabla)
+                        $venta->update([
+                            'ven_estado' => 'cancelled',
+                            'ven_fel_status' => 'void',
+                            // si tienes columnas:
+                            'ven_fel_fecha_hora_anulacion' => now(),
+                            'ven_fel_motivo_anulacion' => $data['motivo'],
+                        ]);
+
+                        //TODO:DEVOLVER STOCK, SEGUN TIPO DE PRODUCTO (ARMAS CON NUMERO DE SERIE, MUNICIONES POR CANTIDAD Y TIPO CAJAS O UNIDADES, ACCESORIOS POR CANTIDAD)
+                        app(ConfirmVenta::class)->handleAnulation($this->record, auth()->id());
+
+                        Notification::make()
+                            ->title('Factura anulada correctamente')
+                            ->success()
+                            ->send();
+
+                        $this->record = $this->record->fresh();
+                        $this->refreshFormData(['ven_estado', 'ven_fel_status']);
+
+                    } catch (Throwable $e) {
+                        $this->record->update(['ven_fel_status' => 'error']);
+                        logger($e->getMessage());
+
+                        Notification::make()
+                            ->title('Error al anular')
+                            ->body($e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                }),
+
+            Action::make('Imprimir anulación')
+                ->label('Imprimir anulación')
+                ->color('info')
+                ->icon('heroicon-o-printer')
+                ->visible(fn() => $this->record->ven_estado === 'cancelled' && !empty($this->record->ven_fel_uuid))
+                ->action(function () {
+                    $venta = $this->record;
+                    $html = view('pdf.factura', compact('venta'))->render();
+
+                    $mpdf = new Mpdf([
+                        'format' => 'Letter',
+                        'margin_left' => 10,
+                        'margin_right' => 10,
+                        'margin_top' => 10,
+                        'margin_bottom' => 10,
+                        'default_font' => 'dejavusans',
+                        'default_font_size' => 9,
+                    ]);
+
+                    $mpdf->SetWatermarkText('ANULADO');
+                    $mpdf->showWatermarkText = true;
+
+                    $mpdf->WriteHTML($html);
+                    $pdfBinary = $mpdf->Output("factura_{$venta->ven_fel_serie}_{$venta->ven_fel_numero}.pdf", Destination::STRING_RETURN);
+
+                    // 4) Guardar en storage/public (para poder abrirlo)
+                    $relativePath = "fel/factura_anulada_{$venta->ven_fel_serie}_{$venta->ven_fel_numero}.pdf";
+                    Storage::disk('public')->put($relativePath, $pdfBinary);
+
+                    Notification::make()
+                        ->title('Factura anulada correctamente')
+                        ->success()
+                        ->send();
+
+                    $this->record = $this->record->fresh();
+                    $this->refreshFormData(['ven_estado', 'ven_fel_status']);
+                    $url = Storage::disk('public')->url($relativePath);
+                    return $this->redirect($url);
+                }),
+
+
         ];
     }
 

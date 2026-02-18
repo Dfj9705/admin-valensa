@@ -79,7 +79,6 @@ class ClienteResource extends Resource
                     Actions::make([
                         Action::make('tekra_lookup')
                             ->label('Consultar SAT')
-                            ->disabled()
                             ->icon('heroicon-o-magnifying-glass')
                             ->action(function (Get $get, Set $set) {
                                 $nit = self::cleanId((string) $get('cli_nit'));

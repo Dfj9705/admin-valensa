@@ -59,7 +59,7 @@ class MovimientosRelationManager extends RelationManager
         return $table
             ->columns([
                 TextColumn::make('mop_fecha')->label('Fecha')->dateTime()->sortable(),
-                TextColumn::make('mop_tipo')->label('Tipo')->badge()->color(fn($state) => $state == 'entrada' ? 'success' : 'danger')->sortable(),
+                TextColumn::make('mop_tipo')->label('Tipo')->badge()->color(fn($state) => $state == 'entrada' || $state == 'devolucion' ? 'success' : 'danger')->sortable(),
                 TextColumn::make('mop_cantidad')->label('Cantidad')->numeric()->sortable(),
                 TextColumn::make('mop_costo_unitario')->label('Costo')->money('GTQ')->toggleable(),
                 TextColumn::make('mop_observacion')->label('Obs.')->limit(30)->wrap(),

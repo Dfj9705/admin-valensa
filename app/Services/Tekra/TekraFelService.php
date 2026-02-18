@@ -291,18 +291,18 @@ XML;
     }
   }
 
-  private function buildAnulacionXML(Sale $sale, $motivo): string
+  private function buildAnulacionXML(Venta $venta, $motivo): string
   {
-    $sale->load('customer');
+    $venta->load('cliente');
 
-    logger($sale->customer->nit);
+    logger($venta->cliente->cli_nit);
 
     // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
     $emisorNit = config('fel.emisor_nit', '107346834');
-    $uuid = $sale->fel_uuid;
+    $uuid = $venta->ven_fel_uuid;
     // str_replace('-06:00', '', str_replace('T', ' ', $fechaHoraEmision)),
-    $fechaHoraCertificacion = str_replace(' ', 'T', $sale->fel_fecha_hora_emision) . '-06:00';
-    $nitReceptor = $sale->customer->nit;
+    $fechaHoraEmision = str_replace(' ', 'T', $venta->ven_fel_fecha_hora_emision) . '-06:00';
+    $nitReceptor = $venta->cliente->cli_nit;
 
 
     $fecha = now()->format('Y-m-d\TH:i:sP'); // -06:00 incluido
@@ -315,7 +315,7 @@ XML;
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <dte:SAT>
     <dte:AnulacionDTE ID="DatosCertificados">
-      <dte:DatosGenerales ID="DatosAnulacion" NumeroDocumentoAAnular="{$uuid}" NITEmisor="{$emisorNit}" IDReceptor="{$nitReceptor}" FechaEmisionDocumentoAnular="{$fechaHoraCertificacion}" FechaHoraAnulacion="{$fecha}" MotivoAnulacion="{$motivo}"/>
+      <dte:DatosGenerales ID="DatosAnulacion" NumeroDocumentoAAnular="{$uuid}" NITEmisor="{$emisorNit}" IDReceptor="{$nitReceptor}" FechaEmisionDocumentoAnular="{$fechaHoraEmision}" FechaHoraAnulacion="{$fecha}" MotivoAnulacion="{$motivo}"/>
     </dte:AnulacionDTE>
   </dte:SAT>
 </dte:GTAnulacionDocumento>

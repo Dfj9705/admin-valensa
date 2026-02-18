@@ -63,14 +63,8 @@ class ProductoResource extends Resource
                     ]),
 
                 Section::make('Inventario y precios')
-                    ->columns(4)
+                    ->columns(3)
                     ->schema([
-                        TextInput::make('pro_stock')
-                            ->label('Stock')
-                            ->numeric()
-                            ->minValue(0)
-                            ->readOnly()
-                            ->default(0),
 
                         TextInput::make('pro_precio_costo')
                             ->label('Precio costo (unit.)')
@@ -204,8 +198,8 @@ class ProductoResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
-            ])
+                    Tables\Actions\DeleteBulkAction::make(),
+                ])
             ->defaultSort('pro_nombre', 'asc');
     }
 
