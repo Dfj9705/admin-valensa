@@ -43,6 +43,8 @@ class Venta extends Model
 
         'ven_created_by',
         'ven_updated_by',
+
+        'ven_emisor_id',
     ];
 
     protected $casts = [
@@ -80,5 +82,10 @@ class Venta extends Model
     public function isEditable(): bool
     {
         return $this->ven_estado === 'draft';
+    }
+
+    public function emisor(): BelongsTo
+    {
+        return $this->belongsTo(Emisor::class, 'ven_emisor_id');
     }
 }

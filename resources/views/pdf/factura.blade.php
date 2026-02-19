@@ -60,9 +60,9 @@
 
     <!-- Emisor -->
     <div class="col center" style="width:55%">
-        <p><strong>{{ env('TEKRA_EMISOR_NOMBRE') }}</strong></p>
-        <p>NIT: {{ env('TEKRA_EMISOR_NIT') }}</p>
-        <p>{{ env('TEKRA_EMISOR_DIRECCION') }}</p>
+        <p><strong>{{ $venta->emisor->emi_nombre }}</strong></p>
+        <p>NIT: {{ $venta->emisor->emi_nit }}</p>
+        <p>{{ $venta->emisor->emi_direccion }}</p>
     </div>
     <div class="col" style="width:35%">
         <div class="box center">
@@ -129,7 +129,8 @@
                         @endphp
                     @endforeach
                     <tr>
-                        <td colspan="4"><span style="font-weight: bold;">SUJETO A PAGOS TRIMESTRALES ISR</span></td>
+                        <td colspan="4"><span
+                                style="font-weight: bold;">{{ $venta->emisor->emi_frase_escenario }}</span></td>
                         <td>
                             <p style="font-weight: bold;">SUBTOTAL</p>
                             <p>{{ number_format($subtotal, 2) }}</p>
@@ -158,7 +159,8 @@
             <p><span style="font-weight: bold;">No. de Autorización:</span> {{ $venta->ven_fel_uuid }}</p>
             <p><span style="font-weight: bold;">Certificador:</span> {{ $venta->ven_fel_nombre_certificador }}</p>
             <p><span style="font-weight: bold;">Nit:</span> {{ $venta->ven_fel_nit_certificador }}</p>
-            <p><span style="font-weight: bold;">Fecha de certificación:</span> {{ $venta->ven_fel_fecha_hora_certificacion }}
+            <p><span style="font-weight: bold;">Fecha de certificación:</span>
+                {{ $venta->ven_fel_fecha_hora_certificacion }}
             </p>
         </div>
     </div>

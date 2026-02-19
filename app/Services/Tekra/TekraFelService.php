@@ -27,10 +27,10 @@ class TekraFelService
     // Nodo Autenticacion (según manual)
     // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador 
     $auth = [
-      'pn_usuario' => config('services.tekra_fel.user2'),
-      'pn_clave' => config('services.tekra_fel.pass2'),
-      'pn_cliente' => config('services.tekra_fel.cliente'),
-      'pn_contrato' => config('services.tekra_fel.contrato'),
+      'pn_usuario' => $venta->emisor->emi_tekra_usuario,
+      'pn_clave' => $venta->emisor->emi_tekra_clave,
+      'pn_cliente' => $venta->emisor->emi_tekra_cliente,
+      'pn_contrato' => $venta->emisor->emi_tekra_contrato,
       'pn_id_origen' => config('services.tekra_fel.id_origen'),
       'pn_ip_origen' => config('services.tekra_fel.ip_origen'),
       'pn_firmar_emisor' => config('services.tekra_fel.firmar_emisor', 'SI'),
@@ -97,10 +97,15 @@ class TekraFelService
     $venta->load('cliente', 'productos');
 
     // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
-    $emisorNit = config('fel.emisor_nit', '107346834');
-    $emisorNombre = config('fel.emisor_nombre', 'TEKRA');
-    $emisorAfiliacion = config('fel.emisor_iva', 'GEN');
-    $establecimiento = config('fel.emisor_establecimiento', '1');
+    $emisorNit = $venta->emisor->emi_nit;
+    $emisorNombre = $venta->emisor->emi_nombre_emisor;
+    $emisorAfiliacion = $venta->emisor->emi_afiliacion_iva;
+    $establecimiento = $venta->emisor->emi_codigo_establecimiento;
+    $direccion = $venta->emisor->emi_direccion;
+    $municipio = $venta->emisor->emi_municipio;
+    $departamento = $venta->emisor->emi_departamento;
+    $pais = $venta->emisor->emi_pais;
+    $codigoPostal = $venta->emisor->emi_codigo_postal;
 
     $receptorId = $venta->cliente?->cli_nit ?: ($venta->cliente?->cli_cui ?: 'CF');
     $receptorNombre = $venta->cliente?->cli_nombre ?: ($venta->cliente?->cli_nombre ?: 'CONSUMIDOR FINAL');
@@ -125,7 +130,7 @@ class TekraFelService
       // Asumimos precio incluye IVA (12%); para FEL se reporta MontoGravable + MontoImpuesto.
       // Ejemplo del manual: MontoGravable y MontoImpuesto por item 
       $montoGravable = round($precioFinal / 1.12, 5);
-      $montoImpuesto = round($precioFinal - $montoGravable, 5);
+      $montoImpuesto = round($montoGravable * 0.12, 5);
 
       $totalImpuestoIva += $montoImpuesto;
       $granTotal += $precioFinal;
@@ -175,11 +180,11 @@ XML;
         <dte:DatosGenerales Tipo="FACT" FechaHoraEmision="{$fecha}" CodigoMoneda="GTQ" NumeroAcceso="{$numeroAcceso}" />
         <dte:Emisor NITEmisor="{$emisorNit}" NombreEmisor="{$emisorNombre}" CodigoEstablecimiento="{$establecimiento}" NombreComercial="{$emisorNombre}" CorreoEmisor="" AfiliacionIVA="{$emisorAfiliacion}">
           <dte:DireccionEmisor>
-            <dte:Direccion>Guatemala</dte:Direccion>
-            <dte:CodigoPostal>01010</dte:CodigoPostal>
-            <dte:Municipio>Guatemala</dte:Municipio>
-            <dte:Departamento>GUATEMALA</dte:Departamento>
-            <dte:Pais>GT</dte:Pais>
+            <dte:Direccion>{$direccion}</dte:Direccion>
+            <dte:CodigoPostal>{$codigoPostal}</dte:CodigoPostal>
+            <dte:Municipio>{$municipio}</dte:Municipio>
+            <dte:Departamento>{$departamento}</dte:Departamento>
+            <dte:Pais>{$pais}</dte:Pais>
           </dte:DireccionEmisor>
         </dte:Emisor>
         <dte:Receptor IDReceptor="{$receptorId}" NombreReceptor="{$receptorNombre}" CorreoReceptor="{$correo}">
@@ -192,7 +197,7 @@ XML;
           </dte:DireccionReceptor>
         </dte:Receptor>
         <dte:Frases>
-          <dte:Frase TipoFrase="1" CodigoEscenario="1"/>
+          <dte:Frase TipoFrase="{$venta->emisor->emi_frase_tipo}" CodigoEscenario="{$venta->emisor->emi_frase_escenario}"/>
         </dte:Frases>
         <dte:Items>
           {$itemsXml}
@@ -230,10 +235,10 @@ XML;
     // Nodo Autenticacion (según manual)
     // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador 
     $auth = [
-      'pn_usuario' => config('services.tekra_fel.user2'),
-      'pn_clave' => config('services.tekra_fel.pass2'),
-      'pn_cliente' => config('services.tekra_fel.cliente'),
-      'pn_contrato' => config('services.tekra_fel.contrato'),
+      'pn_usuario' => $venta->emisor->emi_tekra_usuario,
+      'pn_clave' => $venta->emisor->emi_tekra_clave,
+      'pn_cliente' => $venta->emisor->emi_tekra_cliente,
+      'pn_contrato' => $venta->emisor->emi_tekra_contrato,
       'pn_id_origen' => config('services.tekra_fel.id_origen'),
       'pn_ip_origen' => config('services.tekra_fel.ip_origen'),
       'pn_firmar_emisor' => config('services.tekra_fel.firmar_emisor', 'SI'),
@@ -298,7 +303,7 @@ XML;
     logger($venta->cliente->cli_nit);
 
     // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
-    $emisorNit = config('fel.emisor_nit', '107346834');
+    $emisorNit = $venta->emisor->emi_nit;
     $uuid = $venta->ven_fel_uuid;
     // str_replace('-06:00', '', str_replace('T', ' ', $fechaHoraEmision)),
     $fechaHoraEmision = str_replace(' ', 'T', $venta->ven_fel_fecha_hora_emision) . '-06:00';

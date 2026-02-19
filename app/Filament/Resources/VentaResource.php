@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\VentaResource\Pages;
 use App\Filament\Resources\VentaResource\RelationManagers;
 use App\Models\Cliente;
+use App\Models\Emisor;
 use App\Models\Producto;
 use App\Models\Venta;
 use Filament\Forms;
@@ -42,6 +43,15 @@ class VentaResource extends Resource
                 Section::make('Información General')
                     ->columns(2)
                     ->schema([
+                        Select::make('ven_emisor_id')
+                            ->label('Emisor')
+                            ->columnSpanFull()
+                            ->options(function () {
+                                return Emisor::where('emi_activo', true)->pluck('emi_nombre_emisor', 'emi_id');
+                            })
+                            ->getOptionLabelFromRecordUsing(fn($record) => "{$record->emi_nombre_emisor} - {$record->emi_nombre_comercial} (NIT {$record->emi_nit})")
+                            ->required()
+                            ->disabled(fn($record) => $record && $record->ven_estado !== 'draft'),
 
                         Select::make('ven_cliente_id')
                             ->relationship('cliente', 'cli_nombre')
