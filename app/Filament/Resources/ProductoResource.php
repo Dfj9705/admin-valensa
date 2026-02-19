@@ -157,6 +157,7 @@ class ProductoResource extends Resource
                     })
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
+                    ->hidden()
                     ->sortable(),
 
                 TextColumn::make('pro_precio_venta_min')
@@ -176,6 +177,7 @@ class ProductoResource extends Resource
                     ->state(fn($record) => (float) $record->pro_stock * (float) $record->pro_precio_venta_min)
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
+                    ->hidden()
                     ->toggleable(),
 
                 TextColumn::make('total_max')
@@ -183,6 +185,7 @@ class ProductoResource extends Resource
                     ->state(fn($record) => (float) $record->pro_stock * (float) $record->pro_precio_venta_max)
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
+                    ->hidden()
                     ->toggleable(),
 
                 IconColumn::make('pro_activo')
