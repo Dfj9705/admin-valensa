@@ -41,10 +41,10 @@
                 <tr>
                     <th>#</th>
                     <th>Producto</th>
-                    <th>SKU</th>
                     <th>Stock</th>
                     <th>Costo</th>
-                    <th>Precio</th>
+                    <th>Precio Mínimo</th>
+                    <th>Pendiente de generar</th>
                 </tr>
             </thead>
             <tbody>
@@ -52,12 +52,20 @@
                     <tr>
                         <td>{{ $i + 1 }}</td>
                         <td>{{ $p->pro_nombre }}</td>
-                        <td>{{ $p->pro_sku }}</td>
                         <td>{{ $p->pro_stock }}</td>
-                        <td>{{ number_format($p->pro_precio_costo, 2) }}</td>
-                        <td>{{ number_format($p->pro_precio_venta_min, 2) }}</td>
+                        <td style="text-align: right;">Q. {{ number_format($p->pro_precio_costo, 2) }}</td>
+                        <td style="text-align: right;">Q. {{ number_format($p->pro_precio_venta_min, 2) }}</td>
+                        <td style="text-align: right; font-weight: bold;">
+                            Q. {{ number_format($p->pro_stock * $p->pro_precio_venta_min, 2) }}
+                        </td>
                     </tr>
                 @endforeach
+                <tr>
+                    <td colspan="5" style="text-align: right; font-weight: bold; font-size: 14px;">Total:</td>
+                    <td style="text-align: right; font-weight: bold; font-size: 14px;">
+                        Q. {{ number_format($products->sum('pro_stock') * $products->sum('pro_precio_venta_min'), 2) }}
+                    </td>
+                </tr>
             </tbody>
         </table>
 
