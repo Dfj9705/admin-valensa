@@ -33,8 +33,8 @@ return [
 
     'tekra' => [
         'base_url' => env('TEKRA_BASE_URL', 'https://apiseguimiento.tekra.com.gt'),
-        'user' => env('TEKRA_USER2'),
-        'pass' => env('TEKRA_PASS2'),
+        'user' => env('TEKRA_USER'),
+        'pass' => env('TEKRA_PASS'),
         'empresa' => env('TEKRA_EMPRESA', 1),
         'cliente' => env('TEKRA_CLIENTE'),
         'contrato' => env('TEKRA_CONTRATO'),
@@ -44,9 +44,7 @@ return [
         'wsdl' => env('TEKRA_FEL_WSDL'),
         'url' => env('TEKRA_FEL_URL'),
         'user' => env('TEKRA_USER'),
-        'user2' => env('TEKRA_USER2'),
         'pass' => env('TEKRA_PASS'),
-        'pass2' => env('TEKRA_PASS2'),
         'cliente' => env('TEKRA_CLIENTE'),
         'contrato' => env('TEKRA_CONTRATO'),
         'id_origen' => env('TEKRA_ID_ORIGEN', 'Sistema Facturacion'),
