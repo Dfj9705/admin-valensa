@@ -48,7 +48,13 @@
                 </tr>
             </thead>
             <tbody>
+                @php
+                    $total = 0;
+                @endphp
                 @foreach($products as $i => $p)
+                    @php
+                        $total += $p->pro_stock * $p->pro_precio_venta_min;
+                    @endphp
                     <tr>
                         <td>{{ $i + 1 }}</td>
                         <td>{{ $p->pro_nombre }}</td>
@@ -63,7 +69,7 @@
                 <tr>
                     <td colspan="5" style="text-align: right; font-weight: bold; font-size: 14px;">Total:</td>
                     <td style="text-align: right; font-weight: bold; font-size: 14px;">
-                        Q. {{ number_format($products->sum('pro_stock') * $products->sum('pro_precio_venta_min'), 2) }}
+                        Q. {{ number_format($total, 2) }}
                     </td>
                 </tr>
             </tbody>
