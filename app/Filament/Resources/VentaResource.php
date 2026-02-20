@@ -8,7 +8,10 @@ use App\Models\Cliente;
 use App\Models\Emisor;
 use App\Models\Producto;
 use App\Models\Venta;
+use App\Services\Tekra\TekraContribuyenteService;
 use Filament\Forms;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -18,6 +21,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
 use Filament\Forms\Set;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
@@ -65,6 +69,60 @@ class VentaResource extends Resource
                                 TextInput::make('cli_nit')
                                     ->label('NIT')
                                     ->required(),
+
+
+                                Actions::make([
+                                    Action::make('tekra_lookup')
+                                        ->label('Consultar SAT')
+                                        ->icon('heroicon-o-magnifying-glass')
+                                        ->action(function (Get $get, Set $set) {
+                                            $nit = preg_replace('/[\s-]/', '', $get('cli_nit'));
+                                            if (blank($nit)) {
+                                                Notification::make()
+                                                    ->title('Ingresa NIT')
+                                                    ->danger()
+                                                    ->send();
+                                                return;
+                                            }
+
+                                            $svc = app(TekraContribuyenteService::class);
+
+                                            $response = $svc->consultaNit($nit);
+
+                                            $error = (int) data_get($response, 'resultado.0.error', 1);
+                                            $mensaje = (string) data_get($response, 'resultado.0.mensaje', '');
+
+                                            if ($error !== 0) {
+                                                Notification::make()
+                                                    ->title('TEKRA: error')
+                                                    ->body($mensaje !== '' ? $mensaje : 'No se pudo consultar.')
+                                                    ->danger()
+                                                    ->send();
+                                                return;
+                                            }
+
+                                            $datos = data_get($response, 'datos.0', []);
+
+                                            $set('cli_nit', data_get($datos, 'nit', $nit));
+
+                                            $nombreTekra = (string) (data_get($datos, 'nombre') ?? data_get($datos, 'nombre_completo') ?? '');
+                                            $nombreLimpio = trim(preg_replace('/\s+/', ' ', str_replace(',', ' ', $nombreTekra)));
+
+                                            if ($nombreLimpio !== '') {
+                                                $set('cli_nombre', $nombreLimpio);
+
+                                                if (blank(trim((string) $get('cli_nombre')))) {
+                                                    $set('cli_nombre', $nombreLimpio);
+                                                }
+                                            }
+
+                                            Notification::make()
+                                                ->title('Datos cargados desde SAT')
+                                                ->success()
+                                                ->send();
+                                        }),
+                                ])->columnSpanFull(),
+
                                 TextInput::make('cli_nombre')
                                     ->label('Nombre')
                                     ->required(),
