@@ -5,10 +5,13 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CategoriaGastoResource\Pages;
 use App\Filament\Resources\CategoriaGastoResource\RelationManagers;
 use App\Models\CategoriaGasto;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ViewAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -66,7 +69,9 @@ class CategoriaGastoResource extends Resource
                 Tables\Filters\TernaryFilter::make('cat_activo')->label('Activo'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
+                ViewAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\DeleteBulkAction::make(),
