@@ -20,6 +20,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Summarizers\Sum;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
@@ -148,7 +149,14 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+
+                    ),
 
                 TextColumn::make('costo_total')
                     ->label('Costo total')
@@ -158,19 +166,40 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->hidden()
-                    ->sortable(),
+                    ->sortable()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+
+                    ),
 
                 TextColumn::make('pro_precio_venta_min')
                     ->label('Venta min (unit.)')
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
-                    ->toggleable(),
+                    ->toggleable()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+
+                    ),
 
                 TextColumn::make('pro_precio_venta_max')
                     ->label('Venta max (unit.)')
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
-                    ->toggleable(),
+                    ->toggleable()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+
+                    ),
 
                 TextColumn::make('total_min')
                     ->label('Total min')
@@ -178,7 +207,14 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->hidden()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+
+                    ),
 
                 TextColumn::make('total_max')
                     ->label('Total max')
@@ -186,7 +222,14 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->hidden()
-                    ->toggleable(),
+                    ->toggleable()
+                    ->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+
+                    ),
 
                 IconColumn::make('pro_activo')
                     ->label('Activo')
