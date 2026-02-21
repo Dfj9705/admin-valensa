@@ -24,19 +24,16 @@ class EditVenta extends EditRecord
 
     public function refreshTotals(): void
     {
-        $this->record->refresh();
 
-        // Si tus totales son columnas reales:
-        // $this->form->fill($this->record->toArray());
-
-        // Si tus totales son computed/accessors (pagado/saldo) mejor setearlos explícito:
         $this->form->fill([
-            ...$this->form->getState(), // conserva lo que el usuario tenga (por si acaso)
+            'ven_estado' => $this->record->ven_estado,
+            'ven_cliente' => $this->record->ven_cliente_id,
             'ven_subtotal' => $this->record->ven_subtotal,
             'ven_tax' => $this->record->ven_tax,
             'ven_total' => $this->record->ven_total,
             // si los muestras:
             'ven_pagado' => $this->record->pagos()->sum('vpa_monto'),
+            'ven_saldo' => $this->record->ven_total - $this->record->pagos()->sum('vpa_monto'),
             // 'ven_saldo' => (float)$this->record->ven_total - (float)$this->record->pagos()->sum('vpa_monto'),
         ]);
     }

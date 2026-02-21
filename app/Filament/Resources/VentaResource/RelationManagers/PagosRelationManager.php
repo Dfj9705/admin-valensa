@@ -83,8 +83,7 @@ class PagosRelationManager extends RelationManager
                         }
                     })
                     ->after(function ($record) {
-                        $record->refresh();
-                        $record->venta->refresh();
+
                         $this->dispatch('refreshVentaTotals');
                     })
                     // Solo permitir pagos cuando no es draft/cancelled:
