@@ -20,7 +20,26 @@ use Throwable;
 class EditVenta extends EditRecord
 {
     protected static string $resource = VentaResource::class;
+    protected $listeners = ['refreshVentaTotals' => 'refreshTotals'];
 
+    public function refreshTotals(): void
+    {
+        $this->record->refresh();
+
+        // Si tus totales son columnas reales:
+        // $this->form->fill($this->record->toArray());
+
+        // Si tus totales son computed/accessors (pagado/saldo) mejor setearlos explícito:
+        $this->form->fill([
+            ...$this->form->getState(), // conserva lo que el usuario tenga (por si acaso)
+            'ven_subtotal' => $this->record->ven_subtotal,
+            'ven_tax' => $this->record->ven_tax,
+            'ven_total' => $this->record->ven_total,
+            // si los muestras:
+            'ven_pagado' => $this->record->pagos()->sum('vpa_monto'),
+            // 'ven_saldo' => (float)$this->record->ven_total - (float)$this->record->pagos()->sum('vpa_monto'),
+        ]);
+    }
     protected function getHeaderActions(): array
     {
         return [

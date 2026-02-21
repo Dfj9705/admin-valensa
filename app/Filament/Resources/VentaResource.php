@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\VentaResource\Pages;
 use App\Filament\Resources\VentaResource\RelationManagers;
+use App\Filament\Resources\VentaResource\RelationManagers\PagosRelationManager;
 use App\Models\Cliente;
 use App\Models\Emisor;
 use App\Models\Producto;
@@ -276,6 +277,22 @@ class VentaResource extends Resource
                             ->reactive()
                             ->prefix('Q')
                             ->readOnly(),
+
+                        TextInput::make('ven_pagado_calc')
+                            ->label('Pagado')
+                            ->live()
+                            ->reactive()
+                            ->readOnly()
+                            ->prefix('Q')
+                            ->formatStateUsing(fn($record) => $record?->ven_pagado),
+
+                        TextInput::make('ven_saldo_calc')
+                            ->label('Saldo pendiente')
+                            ->live()
+                            ->reactive()
+                            ->readOnly()
+                            ->prefix('Q')
+                            ->formatStateUsing(fn($record) => $record?->ven_saldo_pendiente),
                     ]),
 
                 Section::make('Información FEL')
@@ -377,6 +394,14 @@ class VentaResource extends Resource
                             ->query(fn(Builder $query) => $query->whereIn('ven_estado', ['certified', 'confirmed']))
 
                     ),
+                TextColumn::make('ven_pagado')
+                    ->label('Pagado')
+                    ->money('GTQ'),
+
+                TextColumn::make('ven_saldo_pendiente')
+                    ->label('Saldo')
+                    ->money('GTQ')
+                    ->badge(),
                 TextColumn::make('created_at')->dateTime()->label('Creada'),
             ])
             ->actions([
@@ -395,7 +420,7 @@ class VentaResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            PagosRelationManager::class,
         ];
     }
 

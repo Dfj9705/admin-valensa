@@ -88,4 +88,19 @@ class Venta extends Model
     {
         return $this->belongsTo(Emisor::class, 'ven_emisor_id');
     }
+
+    public function pagos(): HasMany
+    {
+        return $this->hasMany(VentaPago::class, 'ven_id', 'ven_id');
+    }
+
+    public function getVenPagadoAttribute(): string
+    {
+        return (string) $this->pagos()->sum('vpa_monto');
+    }
+
+    public function getVenSaldoPendienteAttribute(): string
+    {
+        return (string) ((float) $this->ven_total - (float) $this->pagos()->sum('vpa_monto'));
+    }
 }
