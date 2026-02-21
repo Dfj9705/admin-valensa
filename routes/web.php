@@ -21,3 +21,10 @@ Route::get('/', function () {
 Route::get('/admin/products/print', [ReportesController::class, 'productos'])
     ->middleware(['web', 'auth'])
     ->name('products.print');
+
+Route::get('/reportes/servicios', [ReportesController::class, 'servicios'])
+    ->middleware(['web', 'auth'])
+    ->name('reportes.servicios');
+Route::get('/reportes/caja', [ReportesController::class, 'caja'])
+    ->middleware(['web', 'auth'])
+    ->name('reportes.caja');
