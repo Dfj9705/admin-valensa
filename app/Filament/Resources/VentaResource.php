@@ -24,9 +24,11 @@ use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\Summarizers\Sum;
+use Filament\Tables\Columns\Summarizers\Summarizer;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\HtmlString;
 
@@ -366,7 +368,15 @@ class VentaResource extends Resource
                             return 'gray';
                     }
                 }),
-                TextColumn::make('ven_total')->label('Total')->money('GTQ')->sortable(),
+                TextColumn::make('ven_total')->label('Total')->numeric(2, '.', ',', 2)
+                    ->prefix('GTQ ')->sortable()->summarize(
+                        Sum::make()
+                            ->label('Total')
+                            ->numeric(2, '.', ',', 2)
+                            ->prefix('GTQ ')
+                            ->query(fn(Builder $query) => $query->whereIn('ven_estado', ['certified', 'confirmed']))
+
+                    ),
                 TextColumn::make('created_at')->dateTime()->label('Creada'),
             ])
             ->actions([
