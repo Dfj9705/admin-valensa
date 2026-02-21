@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EgresoServicio extends Model
 {
@@ -17,7 +18,7 @@ class EgresoServicio extends Model
     protected $fillable = [
         'egr_fecha',
         'egr_lugar',
-        'egr_concepto',
+        'cat_id',
         'egr_observaciones',
         'egr_monto',
         'egr_metodo_pago',
@@ -30,4 +31,8 @@ class EgresoServicio extends Model
         'egr_fecha' => 'date',
         'egr_monto' => 'decimal:2',
     ];
+    public function categoria(): BelongsTo
+    {
+        return $this->belongsTo(CategoriaGasto::class, 'cat_id', 'cat_id');
+    }
 }

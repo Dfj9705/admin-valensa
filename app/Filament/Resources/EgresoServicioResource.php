@@ -47,10 +47,16 @@ class EgresoServicioResource extends Resource
                         ->numeric()
                         ->required(),
 
-                    TextInput::make('egr_concepto')
-                        ->label('Concepto')
-                        ->required()
-                        ->columnSpanFull(),
+                    Select::make('cat_id')
+                        ->label('Categoría')
+                        ->relationship(
+                            name: 'categoria',
+                            titleAttribute: 'cat_nombre',
+                            modifyQueryUsing: fn($query) => $query->where('cat_activo', true)
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->required(),
 
                     TextInput::make('egr_lugar')
                         ->label('Lugar / Servicio')
@@ -92,10 +98,10 @@ class EgresoServicioResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                TextColumn::make('egr_concepto')
-                    ->label('Concepto')
+                TextColumn::make('categoria.cat_nombre')
+                    ->label('Categoría')
                     ->searchable()
-                    ->wrap(),
+                    ->sortable(),
 
                 TextColumn::make('egr_lugar')
                     ->label('Lugar / Servicio')
