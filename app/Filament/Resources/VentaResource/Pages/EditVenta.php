@@ -27,7 +27,7 @@ class EditVenta extends EditRecord
 
         $this->form->fill([
             'ven_estado' => $this->record->ven_estado,
-            'ven_cliente' => $this->record->ven_cliente_id,
+            'ven_cliente_id' => $this->record->ven_cliente_id,
             'ven_subtotal' => $this->record->ven_subtotal,
             'ven_tax' => $this->record->ven_tax,
             'ven_total' => $this->record->ven_total,
