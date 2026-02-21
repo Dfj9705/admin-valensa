@@ -83,6 +83,7 @@ class PagosRelationManager extends RelationManager
                         }
                     })
                     ->after(function ($record) {
+                        $record->refresh();
 
                         $this->dispatch('refreshVentaTotals');
                     })
@@ -93,16 +94,13 @@ class PagosRelationManager extends RelationManager
                 Tables\Actions\EditAction::make()
                     ->visible(fn() => $this->getOwnerRecord()->ven_estado === 'confirmed')
                     ->after(function ($record) {
-                        $record->refresh();
-                        $record->venta->refresh();
+
                         $this->dispatch('refreshVentaTotals');
                     }),
                 Tables\Actions\DeleteAction::make()
                     ->visible(fn() => $this->getOwnerRecord()->ven_estado === 'confirmed')
                     ->recordTitle(fn($record) => "Eliminar pago Q{$record->vpa_monto}")
                     ->after(function ($record) {
-                        $record->refresh();
-                        $record->venta->refresh();
                         $this->dispatch('refreshVentaTotals');
                     }),
             ]);
