@@ -24,10 +24,10 @@ class IngresoServicioResource extends Resource
     protected static ?string $model = IngresoServicio::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationGroup = 'Finanzas';
-    protected static ?string $navigationLabel = 'Ingresos por Servicios';
-    protected static ?string $modelLabel = 'Ingreso por Servicio';
-    protected static ?string $pluralModelLabel = 'Ingresos por Servicios';
+    protected static ?string $navigationGroup = 'Servicios';
+    protected static ?string $navigationLabel = 'Ingresos';
+    protected static ?string $modelLabel = 'Ingreso';
+    protected static ?string $pluralModelLabel = 'Ingresos';
 
     public static function form(Form $form): Form
     {

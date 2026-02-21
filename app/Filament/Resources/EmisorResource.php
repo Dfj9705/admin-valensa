@@ -21,6 +21,7 @@ class EmisorResource extends Resource
     protected static ?string $model = Emisor::class;
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
     protected static ?string $navigationGroup = 'Configuración';
+    protected static ?int $navigationSort = 4;
     protected static ?string $navigationLabel = 'Emisores FEL';
     protected static ?string $modelLabel = 'Emisor';
     protected static ?string $pluralModelLabel = 'Emisores';

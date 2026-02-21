@@ -37,10 +37,10 @@ class VentaResource extends Resource
     protected static ?string $model = Venta::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
-    protected static ?string $navigationGroup = 'Ventas';
+    protected static ?string $navigationGroup = 'Maquinaria y equipo';
     protected static ?string $modelLabel = 'Venta';
     protected static ?string $pluralModelLabel = 'Ventas';
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

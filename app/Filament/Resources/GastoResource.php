@@ -31,10 +31,11 @@ class GastoResource extends Resource
     protected static ?string $model = Gasto::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
-    protected static ?string $navigationGroup = 'Finanzas';
+    protected static ?string $navigationGroup = 'Maquinaria y equipo';
     protected static ?string $navigationLabel = 'Gastos / Compras';
     protected static ?string $modelLabel = 'Gasto';
     protected static ?string $pluralModelLabel = 'Gastos';
+    protected static ?int $navigationSort = 2;
 
     public static function form(Form $form): Form
     {

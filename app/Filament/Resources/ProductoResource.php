@@ -33,7 +33,8 @@ class ProductoResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
     protected static ?string $navigationLabel = 'Productos';
-    protected static ?string $navigationGroup = 'Inventario';
+    protected static ?string $navigationGroup = 'Maquinaria y equipo';
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {

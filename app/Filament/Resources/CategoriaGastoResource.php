@@ -21,7 +21,8 @@ class CategoriaGastoResource extends Resource
     protected static ?string $model = CategoriaGasto::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
-    protected static ?string $navigationGroup = 'Finanzas';
+    protected static ?string $navigationGroup = 'Configuración';
+    protected static ?int $navigationSort = 5;
     protected static ?string $navigationLabel = 'Categorías de gastos';
     protected static ?string $modelLabel = 'Categoría de gasto';
     protected static ?string $pluralModelLabel = 'Categorías de gastos';
