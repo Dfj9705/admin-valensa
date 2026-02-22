@@ -90,6 +90,16 @@ class ReportesController extends Controller
         $desde = $request->query('desde');
         $hasta = $request->query('hasta');
 
+        $totalVentas = Venta::query()
+            ->when($desde, fn($q) => $q->whereDate('created_at', '>=', $desde))
+            ->when($hasta, fn($q) => $q->whereDate('created_at', '<=', $hasta))
+            ->sum('ven_total');
+
+        $totalPagos = VentaPago::query()
+            ->when($desde, fn($q) => $q->whereDate('vpa_fecha', '>=', $desde))
+            ->when($hasta, fn($q) => $q->whereDate('vpa_fecha', '<=', $hasta))
+            ->sum('vpa_monto');
+
         $pagos = VentaPago::query()
             ->when($desde, fn($q) => $q->whereDate('vpa_fecha', '>=', $desde))
             ->when($hasta, fn($q) => $q->whereDate('vpa_fecha', '<=', $hasta))
@@ -118,7 +128,7 @@ class ReportesController extends Controller
             ->sortByDesc(fn($m) => \Carbon\Carbon::createFromFormat('d/m/Y', $m['fecha'])->format('Y-m-d'))
             ->values();
 
-        $html = view('pdf.caja', compact('movimientos', 'desde', 'hasta'))->render();
+        $html = view('pdf.caja', compact('movimientos', 'desde', 'hasta', 'totalVentas', 'totalPagos'))->render();
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
