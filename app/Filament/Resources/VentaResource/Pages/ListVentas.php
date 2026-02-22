@@ -18,11 +18,7 @@ class ListVentas extends ListRecords
             Action::make('imprimir_saldos')
                 ->label('Imprimir saldos pendientes')
                 ->icon('heroicon-o-printer')
-                ->url(fn() => route('reportes.ventas.pendientes', [
-                    // si querés usar filtros del listado, te digo cómo abajo
-                    'desde' => now()->startOfMonth()->toDateString(),
-                    'hasta' => now()->toDateString(),
-                ]))
+                ->url(fn() => route('reportes.ventas.pendientes'))
                 ->openUrlInNewTab(),
         ];
     }

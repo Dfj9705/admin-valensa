@@ -48,7 +48,6 @@
     <body>
         <img class="logo" src="{{ asset('img/logo.png') }}" alt="Logo">
         <h2>Reporte de Ventas - Saldos Pendientes</h2>
-        <p class="muted">Rango: {{ $desde }} a {{ $hasta }}</p>
 
         <table>
             <thead>

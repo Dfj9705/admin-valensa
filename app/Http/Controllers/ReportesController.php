@@ -136,14 +136,11 @@ class ReportesController extends Controller
 
     public function ventasPendientes(Request $request)
     {
-        $desde = $request->query('desde');
-        $hasta = $request->query('hasta');
+
 
         $ventas = Venta::query()
             ->select(['ven_id', 'created_at', 'ven_total', 'ven_cliente_id', 'ven_estado', 'ven_cliente_id'])
             ->withSum('pagos as pagos_sum', 'vpa_monto')
-            ->when($desde, fn($q) => $q->whereDate('created_at', '>=', $desde))
-            ->when($hasta, fn($q) => $q->whereDate('created_at', '<=', $hasta))
             ->orderByDesc('created_at')
             ->get()
             ->map(function ($v) {
@@ -168,8 +165,6 @@ class ReportesController extends Controller
 
         $html = view('pdf.ventas_pendientes', compact(
             'ventas',
-            'desde',
-            'hasta',
             'totTotal',
             'totPagado',
             'totPendiente'
