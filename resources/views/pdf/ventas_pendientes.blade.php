@@ -64,9 +64,6 @@
             </thead>
             <tbody>
                 @php
-                    $totTotal = 0;
-                    $totPagado = 0;
-                    $totPendiente = 0;
                     $color = '';
                 @endphp
                 @foreach($ventas as $key => $v)
