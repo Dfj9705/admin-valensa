@@ -37,10 +37,16 @@
             .muted {
                 color: #666;
             }
+
+            .logo {
+                width: 60px;
+                margin-bottom: 10px;
+            }
         </style>
     </head>
 
     <body>
+        <img class="logo" src="{{ asset('img/logo.png') }}" alt="Logo">
         <h2>Reporte de Ventas - Saldos Pendientes</h2>
         <p class="muted">Rango: {{ $desde }} a {{ $hasta }}</p>
 
