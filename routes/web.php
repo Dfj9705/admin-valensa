@@ -28,3 +28,6 @@ Route::get('/reportes/servicios', [ReportesController::class, 'servicios'])
 Route::get('/reportes/caja', [ReportesController::class, 'caja'])
     ->middleware(['web', 'auth'])
     ->name('reportes.caja');
+Route::get('/reportes/ventas-pendientes', [ReportesController::class, 'ventasPendientes'])
+    ->middleware(['web', 'auth'])
+    ->name('reportes.ventas.pendientes');

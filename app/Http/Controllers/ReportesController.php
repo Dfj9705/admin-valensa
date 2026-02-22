@@ -6,6 +6,7 @@ use App\Models\EgresoServicio;
 use App\Models\Gasto;
 use App\Models\IngresoServicio;
 use App\Models\Producto;
+use App\Models\Venta;
 use App\Models\VentaPago;
 use Illuminate\Http\Request;
 use Mpdf\Mpdf;
@@ -130,6 +131,61 @@ class ReportesController extends Controller
         $mpdf->WriteHTML($html);
 
         return response($mpdf->Output('caja.pdf', 'I'), 200)
+            ->header('Content-Type', 'application/pdf');
+    }
+
+    public function ventasPendientes(Request $request)
+    {
+        $desde = $request->query('desde');
+        $hasta = $request->query('hasta');
+
+        $ventas = Venta::query()
+            ->select(['ven_id', 'created_at', 'ven_total', 'ven_cliente_id', 'ven_estado', 'ven_cliente_id'])
+            ->withSum('pagos as pagos_sum', 'vpa_monto')
+            ->when($desde, fn($q) => $q->whereDate('created_at', '>=', $desde))
+            ->when($hasta, fn($q) => $q->whereDate('created_at', '<=', $hasta))
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($v) {
+                $pagado = (float) ($v->pagos_sum ?? 0);
+                $total = (float) $v->ven_total;
+                $pendiente = $total - $pagado;
+
+                return [
+                    'id' => $v->ven_id,
+                    'fecha' => optional($v->created_at)->format('d/m/Y'),
+                    'total' => $total,
+                    'pagado' => $pagado,
+                    'pendiente' => $pendiente,
+                    'estado' => $v->ven_estado,
+                    'cliente' => $v->cliente->cli_nombre,
+                ];
+            });
+
+        $totTotal = $ventas->sum('total');
+        $totPagado = $ventas->sum('pagado');
+        $totPendiente = $ventas->sum('pendiente');
+
+        $html = view('pdf.ventas_pendientes', compact(
+            'ventas',
+            'desde',
+            'hasta',
+            'totTotal',
+            'totPagado',
+            'totPendiente'
+        ))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+        ]);
+
+        $mpdf->SetTitle('Reporte de Ventas - Saldos Pendientes');
+        $mpdf->WriteHTML($html);
+
+        return response($mpdf->Output('ventas_pendientes.pdf', 'I'), 200)
             ->header('Content-Type', 'application/pdf');
     }
 }
