@@ -73,10 +73,10 @@ class EditVenta extends EditRecord
                     }
                 }),
             Action::make('print')
-                ->label('Imprimir')
+                ->label('Imprimir Recibo')
                 ->color('primary')
                 ->icon('heroicon-o-printer')
-                ->visible(fn() => $this->record->ven_estado === 'confirmed')
+                ->visible(fn() => $this->record->ven_estado === 'confirmed' || $this->record->ven_estado === 'draft')
                 ->action(function () {
                     $venta = $this->record;
                     $mpdf = new Mpdf([

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\VentaResource\Pages;
 use App\Filament\Resources\VentaResource\RelationManagers;
 use App\Filament\Resources\VentaResource\RelationManagers\PagosRelationManager;
+use App\Filament\Resources\VentaResource\Widgets\VentaStats;
 use App\Models\Cliente;
 use App\Models\Emisor;
 use App\Models\Producto;
@@ -430,6 +431,13 @@ class VentaResource extends Resource
             'index' => Pages\ListVentas::route('/'),
             'create' => Pages\CreateVenta::route('/create'),
             'edit' => Pages\EditVenta::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getWidgets(): array
+    {
+        return [
+            VentaStats::class,
         ];
     }
 }

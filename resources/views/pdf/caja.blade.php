@@ -98,9 +98,9 @@
         </table>
 
         <div class="totals">
-            <div><b>Ventas:</b> Q. {{ number_format($totalVentas, 2) }}</div>
-            <div><b>Pendientes:</b> Q. {{ number_format($totalVentas - $total_ingresos, 2) }}</div>
-            <div><b>Pagos ventas:</b> Q. {{ number_format($total_ingresos, 2) }}</div>
+            <div><b>Total en Ventas:</b> Q. {{ number_format($totalVentas, 2) }}</div>
+            <div><b>Saldos Pendientes:</b> Q. {{ number_format($totalVentas - $total_ingresos, 2) }}</div>
+            <div><b>Pagos Ventas:</b> Q. {{ number_format($total_ingresos, 2) }}</div>
             <div><b>Gastos:</b> Q. {{ number_format($total_egresos, 2) }}</div>
             <div class="{{ $total_ingresos - $total_egresos >= 0 ? 'green' : 'red' }}"><b>Saldo:</b>
                 Q. {{ number_format($total_ingresos - $total_egresos, 2) }}</div>

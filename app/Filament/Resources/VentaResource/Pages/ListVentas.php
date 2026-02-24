@@ -10,7 +10,10 @@ use Filament\Resources\Pages\ListRecords;
 class ListVentas extends ListRecords
 {
     protected static string $resource = VentaResource::class;
-
+    protected function getHeaderWidgets(): array
+    {
+        return VentaResource::getWidgets();
+    }
     protected function getHeaderActions(): array
     {
         return [

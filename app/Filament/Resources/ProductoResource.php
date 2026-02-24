@@ -150,14 +150,7 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->sortable()
-                    ->toggleable()
-                    ->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-
-                    ),
+                    ->toggleable(),
 
                 TextColumn::make('costo_total')
                     ->label('Costo total')
@@ -167,40 +160,19 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->hidden()
-                    ->sortable()
-                    ->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-
-                    ),
+                    ->sortable(),
 
                 TextColumn::make('pro_precio_venta_min')
                     ->label('Venta min (unit.)')
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
-                    ->toggleable()
-                    ->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-
-                    ),
+                    ->toggleable(),
 
                 TextColumn::make('pro_precio_venta_max')
                     ->label('Venta max (unit.)')
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
-                    ->toggleable()
-                    ->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-
-                    ),
+                    ->toggleable(),
 
                 TextColumn::make('total_min')
                     ->label('Total min')
@@ -208,14 +180,7 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->hidden()
-                    ->toggleable()
-                    ->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-
-                    ),
+                    ->toggleable(),
 
                 TextColumn::make('total_max')
                     ->label('Total max')
@@ -223,14 +188,7 @@ class ProductoResource extends Resource
                     ->numeric(2, '.', ',', 2)
                     ->prefix('GTQ ')
                     ->hidden()
-                    ->toggleable()
-                    ->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-
-                    ),
+                    ->toggleable(),
 
                 IconColumn::make('pro_activo')
                     ->label('Activo')

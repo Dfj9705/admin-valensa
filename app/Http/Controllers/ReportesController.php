@@ -8,6 +8,7 @@ use App\Models\IngresoServicio;
 use App\Models\Producto;
 use App\Models\Venta;
 use App\Models\VentaPago;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Mpdf\Mpdf;
 
@@ -125,7 +126,8 @@ class ReportesController extends Controller
             ]);
 
         $movimientos = $pagos->concat($gastos)
-            ->sortByDesc(fn($m) => \Carbon\Carbon::createFromFormat('d/m/Y', $m['fecha'])->format('Y-m-d'))
+            ->sortByDesc(fn($m) => Carbon::createFromFormat('d/m/Y', $m['fecha'])->format('Y-m-d'))
+            ->sortByDesc(fn($m) => $m['tipo'] === 'Ingreso' ? 1 : 0)
             ->values();
 
         $html = view('pdf.caja', compact('movimientos', 'desde', 'hasta', 'totalVentas', 'totalPagos'))->render();

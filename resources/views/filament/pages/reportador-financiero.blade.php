@@ -1,7 +1,7 @@
 <x-filament::page>
     {{ $this->form }}
 
-    <div class="grid grid-cols-1 gap-4 mt-6 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 mt-6 md:grid-cols-3 xl:grid-cols-3">
         @foreach($this->cards() as $c)
             <x-filament::section>
                 <div class="text-sm text-gray-500">{{ $c['label'] }}</div>
@@ -73,10 +73,10 @@
                                         <td class="py-2 pr-4">
                                             <span
                                                 class="font-semibold
-                                                                                                                                                                                                                                                                {{ $m['tipo'] === 'Ingreso'
+                                                                                                                                                                                                                                                                                                                {{ $m['tipo'] === 'Ingreso'
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-red-600 dark:text-red-400'
-                                                                                                                                                                                                                                                                }}">
+                                                                                                                                                                                                                                                                                                                }}">
                                                 {{ $m['tipo'] }}
                                             </span>
                                         </td>
