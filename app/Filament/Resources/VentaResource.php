@@ -387,14 +387,7 @@ class VentaResource extends Resource
                     }
                 }),
                 TextColumn::make('ven_total')->label('Total')->numeric(2, '.', ',', 2)
-                    ->prefix('GTQ ')->sortable()->summarize(
-                        Sum::make()
-                            ->label('Total')
-                            ->numeric(2, '.', ',', 2)
-                            ->prefix('GTQ ')
-                            ->query(fn(Builder $query) => $query->whereIn('ven_estado', ['certified', 'confirmed']))
-
-                    ),
+                    ->prefix('GTQ ')->sortable(),
                 TextColumn::make('ven_pagado')
                     ->label('Pagado')
                     ->money('GTQ'),
