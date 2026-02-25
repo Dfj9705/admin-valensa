@@ -59,7 +59,7 @@ class VentaResource extends Resource
                             })
                             ->getOptionLabelFromRecordUsing(fn($record) => "{$record->emi_nombre_emisor} - {$record->emi_nombre_comercial} (NIT {$record->emi_nit})")
                             ->required()
-                            ->disabled(fn($record) => $record && $record->ven_estado !== 'draft'),
+                            ->disabled(fn($record) => $record && $record->ven_estado == 'certified'),
 
                         Select::make('ven_cliente_id')
                             ->relationship('cliente', 'cli_nombre')
