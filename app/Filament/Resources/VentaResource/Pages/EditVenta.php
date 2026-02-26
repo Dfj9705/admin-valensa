@@ -384,7 +384,7 @@ class EditVenta extends EditRecord
             Action::make('save')
                 ->label('Guardar cambios')
                 ->color('primary')
-                ->visible(fn() => $this->record->ven_estado === 'draft')
+                ->visible(fn() => $this->record->ven_estado != 'certified' && $this->record->ven_estado != 'cancelled')
                 ->action(function () {
                     $this->save();
                 }),
