@@ -60,7 +60,8 @@
 
     <!-- Emisor -->
     <div class="col center" style="width:55%">
-        <p><strong>{{ $venta->emisor->emi_nombre }}</strong></p>
+        <p><strong>{{ $venta->emisor->emi_nombre_emisor }}</strong></p>
+        <p><strong>{{ $venta->emisor->emi_nombre_comercial }}</strong></p>
         <p>NIT: {{ $venta->emisor->emi_nit }}</p>
         <p>{{ $venta->emisor->emi_direccion }}</p>
     </div>
