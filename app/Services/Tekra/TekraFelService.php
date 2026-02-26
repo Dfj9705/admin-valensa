@@ -13,6 +13,7 @@ class TekraFelService
 {
   public function certificarFactura(Venta $venta): array
   {
+    $resp = null;
     $xml = $this->buildFacturaXml($venta);
     logger($xml);
 
@@ -23,7 +24,7 @@ class TekraFelService
       'exceptions' => true,
       'cache_wsdl' => WSDL_CACHE_NONE,
     ]);
-
+    $client->__setLocation(config('services.tekra_fel.url'));
     // Nodo Autenticacion (según manual)
     // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador 
     $auth = [
@@ -79,16 +80,12 @@ class TekraFelService
         'qr' => (string) ($resp->CodigoQR ?? ''),
       ];
     } catch (SoapFault $sf) {
-      logger($sf);
-      logger($client->__getLastRequest());
-      logger($client->__getLastResponse());
-      return [
-        'raw' => $resp,
-        'resultado' => (string) ($resp->ResultadoCertificacion ?? ''),
-        'documento_certificado' => (string) ($resp->DocumentoCertificado ?? ''),
-        'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
-        'qr' => (string) ($resp->CodigoQR ?? ''),
-      ];
+      logger('SOAP fault: ' . $sf->getMessage());
+      logger('SOAP location: ' . $client->__getLocation());
+      logger('Last request headers: ' . $client->__getLastRequestHeaders());
+      logger('Last request: ' . $client->__getLastRequest());
+      logger('Last response: ' . $client->__getLastResponse());
+      throw $sf;
     }
   }
 
@@ -231,7 +228,7 @@ XML;
       'exceptions' => true,
       'cache_wsdl' => WSDL_CACHE_NONE,
     ]);
-
+    $client->__setLocation(config('services.tekra_fel.url'));
     // Nodo Autenticacion (según manual)
     // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador 
     $auth = [
@@ -284,15 +281,12 @@ XML;
         'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
       ];
     } catch (SoapFault $sf) {
-      logger($sf);
-      logger($client->__getLastRequest());
-      logger($client->__getLastResponse());
-      return [
-        'raw' => $resp,
-        'resultado' => (string) ($resp->ResultadoAnulacion ?? ''),
-        'documento_certificado' => (string) ($resp->AnulacionCertificada ?? ''),
-        'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
-      ];
+      logger('SOAP fault: ' . $sf->getMessage());
+      logger('SOAP location: ' . $client->__getLocation());
+      logger('Last request headers: ' . $client->__getLastRequestHeaders());
+      logger('Last request: ' . $client->__getLastRequest());
+      logger('Last response: ' . $client->__getLastResponse());
+      throw $sf;
     }
   }
 
