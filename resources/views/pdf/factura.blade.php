@@ -129,8 +129,8 @@
                         @endphp
                     @endforeach
                     <tr>
-                        <td colspan="4"><span
-                                style="font-weight: bold;">{{ $venta->emisor->emi_frase_escenario }}</span></td>
+                        <td colspan="4"><span style="font-weight: bold;">{{ $venta->emisor->emi_frase_texto }}</span>
+                        </td>
                         <td>
                             <p style="font-weight: bold;">SUBTOTAL</p>
                             <p>{{ number_format($subtotal, 2) }}</p>
