@@ -96,6 +96,7 @@ class TekraFelService
     // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
     $emisorNit = $venta->emisor->emi_nit;
     $emisorNombre = $venta->emisor->emi_nombre_emisor;
+    $nombreComercial = $venta->emisor->emi_nombre_comercial;
     $emisorAfiliacion = $venta->emisor->emi_afiliacion_iva;
     $establecimiento = $venta->emisor->emi_codigo_establecimiento;
     $direccion = $venta->emisor->emi_direccion;
@@ -175,7 +176,7 @@ XML;
     <dte:DTE ID="DatosCertificados">
       <dte:DatosEmision ID="DatosEmision">
         <dte:DatosGenerales Tipo="FACT" FechaHoraEmision="{$fecha}" CodigoMoneda="GTQ" NumeroAcceso="{$numeroAcceso}" />
-        <dte:Emisor NITEmisor="{$emisorNit}" NombreEmisor="{$emisorNombre}" CodigoEstablecimiento="{$establecimiento}" NombreComercial="{$emisorNombre}" CorreoEmisor="" AfiliacionIVA="{$emisorAfiliacion}">
+        <dte:Emisor NITEmisor="{$emisorNit}" NombreEmisor="{$emisorNombre}" CodigoEstablecimiento="{$establecimiento}" NombreComercial="{$nombreComercial}" CorreoEmisor="" AfiliacionIVA="{$emisorAfiliacion}">
           <dte:DireccionEmisor>
             <dte:Direccion>{$direccion}</dte:Direccion>
             <dte:CodigoPostal>{$codigoPostal}</dte:CodigoPostal>
