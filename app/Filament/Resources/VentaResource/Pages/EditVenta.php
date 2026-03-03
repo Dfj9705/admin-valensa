@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination;
+use Mpdf\Tag\WatermarkImage;
 use Storage;
 use Throwable;
 
@@ -72,11 +73,41 @@ class EditVenta extends EditRecord
                             ->send();
                     }
                 }),
+            Action::make('cotizacion')
+                ->label('Imprimir Cotización')
+                ->color('primary')
+                ->icon('heroicon-o-printer')
+                ->visible(fn() => $this->record->ven_estado === 'draft')
+                ->action(function () {
+                    $venta = $this->record;
+                    $mpdf = new Mpdf([
+                        'mode' => 'utf-8',
+                        'format' => 'Letter',
+                        'orientation' => 'P',
+                        'default_font_size' => 10,
+                        'default_font' => 'dejavusans',
+                    ]);
+                    $html = view('pdf.cotizacion', compact('venta'))->render();
+                    $mpdf->SetWatermarkImage(public_path('img/watermark.jpg'));
+                    $mpdf->showWatermarkImage = true;
+                    $mpdf->WriteHTML($html);
+                    $nombre = "cotizacion_{$venta->ven_id}_{$venta->created_at->format('Ymd')}.pdf";
+                    $pdfBinary = $mpdf->Output($nombre, Destination::STRING_RETURN);
+                    $relativePath = "cotizaciones/{$nombre}";
+                    Storage::disk('public')->put($relativePath, $pdfBinary);
+
+                    Notification::make()
+                        ->title('Cotización generada')
+                        ->success()
+                        ->send();
+
+                    $this->redirect(Storage::disk('public')->url($relativePath));
+                }),
             Action::make('print')
                 ->label('Imprimir Recibo')
                 ->color('primary')
                 ->icon('heroicon-o-printer')
-                ->visible(fn() => $this->record->ven_estado === 'confirmed' || $this->record->ven_estado === 'draft')
+                ->visible(fn() => $this->record->ven_estado === 'confirmed')
                 ->action(function () {
                     $venta = $this->record;
                     $mpdf = new Mpdf([
