@@ -40,6 +40,7 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Imagen</th>
                     <th>Producto</th>
                     <th>Precio</th>
                 </tr>
@@ -57,6 +58,13 @@
                         @endphp
                         <tr>
                             <td>{{ $contador }}</td>
+                            <td>
+                                @if(isset($p->pro_imagenes[0]))
+                                    <img src="{{ asset('storage/' . $p->pro_imagenes[0]) }}" alt="{{ $p->pro_nombre }}" width="70">
+                                @else
+                                    <span>No hay imagen</span>
+                                @endif
+                            </td>
                             <td>{{ $p->pro_nombre }}</td>
                             <td style="text-align: right;">Q. {{ number_format($p->pro_precio_venta_max, 2) }}</td>
                         </tr>
