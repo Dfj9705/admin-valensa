@@ -58,7 +58,7 @@
                         @endphp
                         <tr>
                             <td>{{ $contador }}</td>
-                            <td>
+                            <td style="text-align: center;">
                                 @if(isset($p->pro_imagenes[0]))
                                     <img src="{{ asset('storage/' . $p->pro_imagenes[0]) }}" alt="{{ $p->pro_nombre }}" width="70">
                                 @else
