@@ -31,3 +31,6 @@ Route::get('/reportes/caja', [ReportesController::class, 'caja'])
 Route::get('/reportes/ventas-pendientes', [ReportesController::class, 'ventasPendientes'])
     ->middleware(['web', 'auth'])
     ->name('reportes.ventas.pendientes');
+Route::get('/reportes/catalogo', [ReportesController::class, 'catalogo'])
+    ->middleware(['web', 'auth'])
+    ->name('catalogo.print');

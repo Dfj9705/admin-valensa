@@ -22,6 +22,11 @@ class ListProductos extends ListRecords
                 ->color('gray')
                 ->label('Imprimir lista')
                 ->url(fn() => route('products.print'), true),
+            Action::make('Imprimir Catálogo')
+                ->icon('heroicon-o-printer')
+                ->color('gray')
+                ->label('Imprimir Catálogo')
+                ->url(fn() => route('catalogo.print'), true),
         ];
     }
 }

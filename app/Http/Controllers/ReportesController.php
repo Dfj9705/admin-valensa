@@ -195,4 +195,27 @@ class ReportesController extends Controller
         return response($mpdf->Output('ventas_pendientes.pdf', 'I'), 200)
             ->header('Content-Type', 'application/pdf');
     }
+
+    public function catalogo(Request $request)
+    {
+        $tableQuery = app(\App\Filament\Resources\ProductoResource::class)
+            ->getEloquentQuery();
+
+        $products = $tableQuery->where('pro_activo', true)->get();
+
+        $html = view('pdf.catalogo', compact('products'))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+        ]);
+
+        $mpdf->SetTitle('Catálogo de Productos');
+        $mpdf->WriteHTML($html);
+
+        return response($mpdf->Output('catalogo.pdf', 'I'), 200)
+            ->header('Content-Type', 'application/pdf');
+    }
 }
