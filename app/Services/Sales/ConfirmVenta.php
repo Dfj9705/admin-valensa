@@ -106,7 +106,7 @@ class ConfirmVenta
                 'ven_confirmed_at' => now(),
             ]);
 
-            return $venta->fresh();
+            return $venta->fresh()->load('productos', 'cliente', 'pagos');
         });
     }
 

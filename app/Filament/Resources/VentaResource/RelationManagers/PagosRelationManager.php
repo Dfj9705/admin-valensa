@@ -88,17 +88,17 @@ class PagosRelationManager extends RelationManager
                         $this->dispatch('refreshVentaTotals');
                     })
                     // Solo permitir pagos cuando no es draft/cancelled:
-                    ->visible(fn() => in_array($this->getOwnerRecord()->ven_estado, ['confirmed', 'certified'], true)),
+                    ->visible(fn() => in_array($this->getOwnerRecord()->ven_estado, ['draft', 'confirmed', 'certified'], true)),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
-                    ->visible(fn() => $this->getOwnerRecord()->ven_estado === 'confirmed')
+                    ->visible(fn() => in_array($this->getOwnerRecord()->ven_estado, ['draft', 'confirmed', 'certified'], true))
                     ->after(function ($record) {
 
                         $this->dispatch('refreshVentaTotals');
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->visible(fn() => $this->getOwnerRecord()->ven_estado === 'confirmed')
+                    ->visible(fn() => in_array($this->getOwnerRecord()->ven_estado, ['draft', 'confirmed', 'certified'], true))
                     ->recordTitle(fn($record) => "Eliminar pago Q{$record->vpa_monto}")
                     ->after(function ($record) {
                         $this->dispatch('refreshVentaTotals');
