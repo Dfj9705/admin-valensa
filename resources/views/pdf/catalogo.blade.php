@@ -47,14 +47,16 @@
             <tbody>
                 @php
                     $total = 0;
+                    $contador = 0;
                 @endphp
                 @foreach($products as $i => $p)
                     @if($p->pro_stock > 0)
                         @php
                             $total += $p->pro_stock * $p->pro_precio_venta_min;
+                            $contador++;
                         @endphp
                         <tr>
-                            <td>{{ $i + 1 }}</td>
+                            <td>{{ $contador }}</td>
                             <td>{{ $p->pro_nombre }}</td>
                             <td style="text-align: right;">Q. {{ number_format($p->pro_precio_venta_max, 2) }}</td>
                         </tr>
