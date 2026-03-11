@@ -10,6 +10,7 @@ use App\Models\Cliente;
 use App\Models\Emisor;
 use App\Models\Producto;
 use App\Models\Venta;
+use App\Services\Sales\ConfirmVenta;
 use App\Services\Tekra\TekraContribuyenteService;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
@@ -59,7 +60,7 @@ class VentaResource extends Resource
                             })
                             ->getOptionLabelFromRecordUsing(fn($record) => "{$record->emi_nombre_emisor} - {$record->emi_nombre_comercial} (NIT {$record->emi_nit})")
                             ->required()
-                            ->disabled(fn($record) => $record && ($record->ven_estado == 'certified' || $record->ven_estado == 'cancelled') ),
+                            ->disabled(fn($record) => $record && ($record->ven_estado == 'certified' || $record->ven_estado == 'cancelled')),
 
                         Select::make('ven_cliente_id')
                             ->relationship('cliente', 'cli_nombre')
@@ -406,7 +407,37 @@ class VentaResource extends Resource
             ->defaultSort('ven_id', 'desc')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->action(function ($records) {
+                            logger($records);
+                            foreach ($records as $record) {
+                                if ($record->ven_estado == 'confirmed') {
+                                    app(ConfirmVenta::class)->handleAnulation($record, auth()->id());
+                                    Notification::make()
+                                        ->title('Venta anulada')
+                                        ->success()
+                                        ->send();
+                                } else if ($record->ven_estado == 'certified') {
+                                    Notification::make()
+                                        ->title('Error')
+                                        ->body('La venta ' . $record->ven_id . ' no puede ser cancelada. Debe anular la certificación.')
+                                        ->danger()
+                                        ->send();
+                                } else if ($record->ven_estado == 'cancelled') {
+                                    Notification::make()
+                                        ->title('Error')
+                                        ->body('La venta ' . $record->ven_id . ' no puede ser cancelada.')
+                                        ->danger()
+                                        ->send();
+                                } else {
+                                    $record->delete();
+                                    Notification::make()
+                                        ->title('Venta borrada')
+                                        ->success()
+                                        ->send();
+                                }
+                            }
+                        }),
                 ]),
             ]);
     }
