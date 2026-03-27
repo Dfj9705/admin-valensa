@@ -72,6 +72,7 @@ class TekraFelService
       ]);
       // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
       // Ejemplo/valores retorno: UUID, serie, numero, pdf base64 
+      logger("Respuesta de Tekra: " . json_encode($resp));
       return [
         'raw' => $resp,
         'resultado' => (string) ($resp->ResultadoCertificacion ?? ''),
