@@ -154,6 +154,7 @@ class EditVenta extends EditRecord
                         logger($resultRaw->NumeroAutorizacion);
                         logger($resultado->error);
                         if ($resultado->error == 1) {
+                            logger("Error al certificar factura: " . json_encode($resultado->frases));
                             $messages = $resultado->frases;
                             foreach ($messages as $message) {
                                 Notification::make()
