@@ -19,7 +19,7 @@ class ReportesController extends Controller
         $tableQuery = app(\App\Filament\Resources\ProductoResource::class)
             ->getEloquentQuery();
 
-        $products = $tableQuery->get();
+        $products = $tableQuery->get()->filter(fn($product) => $product->pro_stock > 0);
 
         $html = view('pdf.productos', compact('products'))->render();
 
