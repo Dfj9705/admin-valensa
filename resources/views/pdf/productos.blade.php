@@ -50,13 +50,15 @@
             <tbody>
                 @php
                     $total = 0;
+                    $counter = 0;
                 @endphp
                 @foreach($products as $i => $p)
                     @php
                         $total += $p->pro_stock * $p->pro_precio_venta_min;
+                        $counter++;
                     @endphp
                     <tr>
-                        <td>{{ $i + 1 }}</td>
+                        <td>{{ $counter }}</td>
                         <td>{{ $p->pro_nombre }}</td>
                         <td>{{ $p->pro_stock }}</td>
                         <td style="text-align: right;">Q. {{ number_format($p->pro_precio_costo, 2) }}</td>
