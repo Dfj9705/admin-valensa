@@ -15,7 +15,7 @@ class TekraFelService
   {
     $resp = null;
     $xml = $this->buildFacturaXml($venta);
-    logger($xml);
+    // logger($xml);
 
     $wsdl = config('services.tekra_fel.wsdl');
 
@@ -272,8 +272,8 @@ XML;
           'Documento' => $documento,
         ]
       ]);
-      logger($client->__getLastRequest());
-      logger($client->__getLastResponse());
+      // logger($client->__getLastRequest());
+      // logger($client->__getLastResponse());
       // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
       // Ejemplo/valores retorno: UUID, serie, numero, pdf base64 
       return [
@@ -296,7 +296,7 @@ XML;
   {
     $venta->load('cliente');
 
-    logger($venta->cliente->cli_nit);
+    // logger($venta->cliente->cli_nit);
 
     // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
     $emisorNit = $venta->emisor->emi_nit;
