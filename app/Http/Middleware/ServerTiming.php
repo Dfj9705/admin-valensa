@@ -18,7 +18,9 @@ class ServerTiming
             return $next($request);
         }
 
-        $startedAt = hrtime(true);
+        $startedAt = defined('LARAVEL_START')
+            ? LARAVEL_START
+            : microtime(true);
         $databaseMs = 0.0;
         $queryCount = 0;
 
@@ -37,7 +39,7 @@ class ServerTiming
 
         $response = $next($request);
 
-        $totalMs = (hrtime(true) - $startedAt) / 1_000_000;
+        $totalMs = (microtime(true) - $startedAt) * 1000;
         $otherMs = max(0, $totalMs - $databaseMs);
 
         $response->headers->set(
