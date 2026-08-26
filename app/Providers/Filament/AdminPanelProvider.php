@@ -30,7 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('')
             ->login()
             ->favicon(asset('img/logo.png'))
-            ->domain(env('APP_URL'))
+            ->domain(config('app.panel_domain'))
             ->brandLogo(asset('img/logo.png'))
             ->brandLogoHeight('50px')
             ->sidebarCollapsibleOnDesktop()
