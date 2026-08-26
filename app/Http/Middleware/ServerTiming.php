@@ -54,17 +54,19 @@ class ServerTiming
         );
 
         if ($totalMs >= 500) {
-            Log::warning('Solicitud Livewire lenta', [
-                'total_ms' => round($totalMs, 2),
-                'database_ms' => round($databaseMs, 2),
-                'other_ms' => round($otherMs, 2),
-                'queries' => $queryCount,
-                'livewire_method' => $request->input(
-                    'components.0.calls.0.method'
-                ),
-                'updated_fields' => array_keys(
-                    $request->input('components.0.updates', [])
-                ),
+            logger('app', [
+                'Solicitud Livewire lenta' => [
+                    'total_ms' => round($totalMs, 2),
+                    'database_ms' => round($databaseMs, 2),
+                    'other_ms' => round($otherMs, 2),
+                    'queries' => $queryCount,
+                    'livewire_method' => $request->input(
+                        'components.0.calls.0.method'
+                    ),
+                    'updated_fields' => array_keys(
+                        $request->input('components.0.updates', [])
+                    ),
+                ]
             ]);
         }
 
