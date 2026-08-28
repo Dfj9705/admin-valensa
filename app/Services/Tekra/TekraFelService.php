@@ -66,7 +66,6 @@ class TekraFelService
       'Documento'
     );
 
-    logger("XML a certificar:" . $documento);
 
     try {
       // El método recibe 2 nodos: Autenticacion y Documento(CDATA) 
@@ -78,6 +77,7 @@ class TekraFelService
       ]);
       // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
       // Ejemplo/valores retorno: UUID, serie, numero, pdf base64 
+      logger('Autenticacion: ' . json_encode($auth));
       logger("Respuesta de Tekra: " . json_encode($resp));
       return [
         'raw' => $resp,
