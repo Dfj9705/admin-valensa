@@ -66,6 +66,8 @@ class TekraFelService
       'Documento'
     );
 
+    logger("XML a certificar:" . $documento);
+
     try {
       // El método recibe 2 nodos: Autenticacion y Documento(CDATA) 
       $resp = $client->__soapCall('CertificacionDocumento', [
