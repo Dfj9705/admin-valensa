@@ -16,9 +16,9 @@ class TekraFelService
     $resp = null;
     $xml = $this->buildFacturaXml($venta);
 
-    if (config('app.debug') == true) {
-      logger("XML a certificar:" . $xml);
-    }
+    // if (config('app.debug') == true) {
+    logger("XML a certificar:" . $xml);
+    // }
 
 
     $wsdl = config('services.tekra_fel.wsdl');
