@@ -58,11 +58,12 @@
 
         .detalle td {
             padding: 7px;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ddd;
+
         }
 
         .numero {
-            text-align: right;
+            text-align: center;
         }
 
         .cliente {
@@ -141,9 +142,9 @@
                 <tr>
                     <th>Venta #</th>
                     <th>Fecha</th>
-                    <th class="numero" style="text-align: right;">Total</th>
-                    <th class="numero" style="text-align: right;">Abonado</th>
-                    <th class="numero" style="text-align: right;">Saldo pendiente</th>
+                    <th class="numero">Total</th>
+                    <th class="numero">Abonado</th>
+                    <th class="numero">Saldo pendiente</th>
                 </tr>
             </thead>
 
