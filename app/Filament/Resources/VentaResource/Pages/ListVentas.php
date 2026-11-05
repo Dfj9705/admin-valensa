@@ -23,6 +23,12 @@ class ListVentas extends ListRecords
                 ->icon('heroicon-o-printer')
                 ->url(fn() => route('reportes.ventas.pendientes'))
                 ->openUrlInNewTab(),
+
+            Action::make('imprimir_deudores')
+                ->label('Reporte de deudores')
+                ->icon('heroicon-o-document-currency-dollar')
+                ->url(fn() => route('reportes.deudores'))
+                ->openUrlInNewTab(),
         ];
     }
 }

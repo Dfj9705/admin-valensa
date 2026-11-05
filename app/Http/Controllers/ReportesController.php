@@ -196,6 +196,86 @@ class ReportesController extends Controller
             ->header('Content-Type', 'application/pdf');
     }
 
+    public function deudores(Request $request)
+    {
+        $ventas = Venta::query()
+            ->select([
+                'ven_id',
+                'ven_cliente_id',
+                'ven_total',
+                'ven_estado',
+                'created_at',
+            ])
+            ->with('cliente')
+            ->withSum('pagos as total_pagado', 'vpa_monto')
+            ->whereIn('ven_estado', ['confirmed', 'certified'])
+            ->orderBy('created_at')
+            ->get()
+            ->map(function ($venta) {
+                $total = round((float) $venta->ven_total, 2);
+                $pagado = round((float) ($venta->total_pagado ?? 0), 2);
+                $saldo = round($total - $pagado, 2);
+
+                return [
+                    'id' => $venta->ven_id,
+                    'cliente_id' => $venta->ven_cliente_id,
+                    'cliente' => $venta->cliente?->cli_nombre
+                        ?? 'Cliente no disponible',
+                    'fecha' => $venta->created_at?->format('d/m/Y'),
+                    'total' => $total,
+                    'pagado' => $pagado,
+                    'saldo' => $saldo,
+                ];
+            })
+            ->filter(fn($venta) => $venta['saldo'] > 0)
+            ->values();
+
+        // Agrupar ventas pendientes por cliente
+        $deudores = $ventas
+            ->groupBy('cliente_id')
+            ->map(function ($ventasCliente) {
+                return [
+                    'cliente' => $ventasCliente->first()['cliente'],
+                    'cantidad_ventas' => $ventasCliente->count(),
+                    'total' => $ventasCliente->sum('total'),
+                    'pagado' => $ventasCliente->sum('pagado'),
+                    'saldo' => $ventasCliente->sum('saldo'),
+                    'ventas' => $ventasCliente->values(),
+                ];
+            })
+            ->sortByDesc('saldo')
+            ->values();
+
+        $totalDeudores = $deudores->count();
+        $totalVentas = $ventas->count();
+        $totalPorCobrar = round($ventas->sum('saldo'), 2);
+
+        $html = view('pdf.deudores', compact(
+            'deudores',
+            'totalDeudores',
+            'totalVentas',
+            'totalPorCobrar'
+        ))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'L',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+            'margin_left' => 12,
+            'margin_right' => 12,
+        ]);
+
+        $mpdf->SetTitle('Reporte de Deudores');
+        $mpdf->WriteHTML($html);
+
+        return response(
+            $mpdf->Output('reporte_deudores.pdf', 'I'),
+            200
+        )->header('Content-Type', 'application/pdf');
+    }
+
     public function catalogo(Request $request)
     {
         $tableQuery = app(\App\Filament\Resources\ProductoResource::class)

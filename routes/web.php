@@ -34,3 +34,7 @@ Route::get('/reportes/ventas-pendientes', [ReportesController::class, 'ventasPen
 Route::get('/reportes/catalogo', [ReportesController::class, 'catalogo'])
     ->middleware(['web', 'auth'])
     ->name('catalogo.print');
+
+Route::get('/reportes/deudores', [ReportesController::class, 'deudores'])
+    ->middleware(['web', 'auth'])
+    ->name('reportes.deudores');
