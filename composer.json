@@ -15,6 +15,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "mpdf/mpdf": "^8.2",
+        "spatie/laravel-permission": "6.0",
         "tomatophp/filament-pwa": "^1.0"
     },
     "require-dev": {

@@ -57,4 +57,8 @@ return [
         'establecimiento' => env('TEKRA_ESTABLECIMIENTO', '1'),
         'emisor_direccion' => env('TEKRA_EMISOR_DIRECCION', '123 Main St'),
     ],
+
+    'valensa' => [
+        'admin_email' => env('VALENSA_ADMIN_EMAIL'),
+    ],
 ];

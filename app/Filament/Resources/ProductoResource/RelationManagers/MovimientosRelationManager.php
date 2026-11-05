@@ -25,6 +25,15 @@ class MovimientosRelationManager extends RelationManager
     protected static string $relationship = 'movimientos';
     protected static ?string $title = 'Movimientos';
 
+
+    public static function canViewForRecord(
+        \Illuminate\Database\Eloquent\Model $ownerRecord,
+        string $pageClass
+    ): bool {
+        return auth()->user()?->can('inventario.ver') ?? false;
+    }
+
+
     public function form(Form $form): Form
     {
         return $form->schema([
@@ -71,6 +80,10 @@ class MovimientosRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-down-tray')
                     ->color('success')
                     ->modalHeading('Registrar ingreso')
+                    ->authorize(
+                        fn(): bool =>
+                            auth()->user()?->can('inventario.crear') ?? false
+                    )
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['mop_tipo'] = 'entrada';
                         return $data;
@@ -81,6 +94,10 @@ class MovimientosRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-up-tray')
                     ->color('danger')
                     ->modalHeading('Registrar salida')
+                    ->authorize(
+                        fn(): bool =>
+                            auth()->user()?->can('inventario.crear') ?? false
+                    )
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['mop_tipo'] = 'salida';
                         return $data;
@@ -111,9 +128,19 @@ class MovimientosRelationManager extends RelationManager
 
                     }),
             ])
+
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->authorize(
+                        fn(): bool =>
+                            auth()->user()?->can('inventario.editar') ?? false
+                    ),
+
+                Tables\Actions\DeleteAction::make()
+                    ->authorize(
+                        fn(): bool =>
+                            auth()->user()?->can('inventario.eliminar') ?? false
+                    ),
             ]);
     }
 }
