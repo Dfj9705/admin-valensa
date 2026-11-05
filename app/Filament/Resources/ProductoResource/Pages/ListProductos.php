@@ -18,11 +18,13 @@ class ListProductos extends ListRecords
         return [
             Actions\CreateAction::make(),
             Action::make('Imprimir lista')
+                ->authorize(fn () => \App\Support\Access::allows('reportes.ver') && \App\Support\Access::allows('reportes.exportar'))
                 ->icon('heroicon-o-printer')
                 ->color('gray')
                 ->label('Imprimir lista')
                 ->url(fn() => route('products.print'), true),
             Action::make('Imprimir Catálogo')
+                ->authorize(fn () => \App\Support\Access::allows('reportes.ver') && \App\Support\Access::allows('reportes.exportar'))
                 ->icon('heroicon-o-printer')
                 ->color('gray')
                 ->label('Imprimir Catálogo')

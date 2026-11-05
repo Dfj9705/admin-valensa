@@ -13,6 +13,10 @@ class TekraFelService
 {
     public function certificarFactura(Venta $venta): array
     {
+        \App\Support\Access::authorize('ventas.certificar');
+        \App\Support\Access::authorize('ventas.ver');
+        $venta = $venta->fresh();
+        abort_unless($venta->ven_estado === 'confirmed' && empty($venta->ven_fel_uuid), 422);
         $resp = null;
         $this->validarVencimientos($venta);
 
@@ -286,6 +290,10 @@ XML;
 
     public function anularFactura(Venta $venta, string $motivo): array
     {
+        \App\Support\Access::authorize('ventas.anular');
+        \App\Support\Access::authorize('ventas.ver');
+        $venta = $venta->fresh();
+        abort_unless($venta->ven_estado === 'certified' && filled($venta->ven_fel_uuid) && $venta->ven_fel_status !== 'void', 422);
         $xml = $this->buildAnulacionXML($venta, $motivo);
 
         $wsdl = config('services.tekra_fel.wsdl');
@@ -348,11 +356,10 @@ XML;
                 'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
             ];
         } catch (SoapFault $sf) {
-            logger('SOAP fault: ' . $sf->getMessage());
-            logger('SOAP location: ' . $client->__getLocation());
-            logger('Last request headers: ' . $client->__getLastRequestHeaders());
-            logger('Last request: ' . $client->__getLastRequest());
-            logger('Last response: ' . $client->__getLastResponse());
+            logger()->error('Error SOAP al anular FEL', [
+                'venta_id' => $venta->ven_id,
+                'codigo' => $sf->faultcode ?? null,
+            ]);
             throw $sf;
         }
     }
@@ -444,6 +451,7 @@ XML;
 
     public function generarXmlFactura(Venta $venta): string
     {
+        \App\Support\Access::authorize('ventas.ver');
         $this->validarVencimientos($venta);
 
         return $this->buildFacturaXml($venta);

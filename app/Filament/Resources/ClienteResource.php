@@ -236,7 +236,12 @@ class ClienteResource extends Resource
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            abort_unless(static::canDelete($record), 403);
+                        }
+                    }),
                 ]),
             ])
             ->defaultSort('cli_id', 'desc');
@@ -261,4 +266,15 @@ class ClienteResource extends Resource
 
         return preg_replace('/[\s-]/', '', $value);
     }
+
+    public static function canViewAny(): bool { return \App\Support\Access::allows('clientes.ver'); }
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('clientes.crear'); }
+    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('clientes.editar'); }
+    public static function canDelete($record): bool { return static::canDeleteAny() && !\App\Models\Venta::where('ven_cliente_id', $record->getKey())->exists(); }
+    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('clientes.eliminar'); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
+
 }

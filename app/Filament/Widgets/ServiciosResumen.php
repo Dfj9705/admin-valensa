@@ -16,6 +16,7 @@ class ServiciosResumen extends BaseWidget
 
     protected function getStats(): array
     {
+        \App\Support\Access::authorize('ingresos_egresos.ver');
         $hoy = Carbon::today();
         $inicioMes = Carbon::now()->startOfMonth();
         $finMes = Carbon::now()->endOfMonth();
@@ -61,4 +62,7 @@ class ServiciosResumen extends BaseWidget
     {
         return 'GTQ ' . number_format($monto, 2, '.', ',');
     }
+
+    public static function canView(): bool { return \App\Support\Access::allows('ingresos_egresos.ver'); }
+
 }

@@ -203,7 +203,12 @@ class ProductoResource extends Resource
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])->bulkActions([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            abort_unless(static::canDelete($record), 403);
+                        }
+                    }),
                 ])
             ->defaultSort('pro_nombre', 'asc');
     }
@@ -225,34 +230,15 @@ class ProductoResource extends Resource
     }
 
 
-    public static function canViewAny(): bool
-    {
-        return auth()->user()?->can('productos.ver') ?? false;
-    }
 
-    public static function canView($record): bool
-    {
-        return auth()->user()?->can('productos.ver') ?? false;
-    }
-
-    public static function canCreate(): bool
-    {
-        return auth()->user()?->can('productos.crear') ?? false;
-    }
-
-    public static function canEdit($record): bool
-    {
-        return auth()->user()?->can('productos.editar') ?? false;
-    }
-
-    public static function canDelete($record): bool
-    {
-        return auth()->user()?->can('productos.eliminar') ?? false;
-    }
-
-    public static function canDeleteAny(): bool
-    {
-        return auth()->user()?->can('productos.eliminar') ?? false;
-    }
+    public static function canViewAny(): bool { return \App\Support\Access::allows('productos.ver'); }
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('productos.crear'); }
+    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('productos.editar'); }
+    public static function canDelete($record): bool { return static::canDeleteAny() && !$record->movimientos()->exists() && !\App\Models\VentaProducto::where('pro_id', $record->getKey())->exists(); }
+    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('productos.eliminar'); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
 
 }

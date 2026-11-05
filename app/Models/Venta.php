@@ -116,4 +116,26 @@ class Venta extends Model
         )->orderBy('vve_numero');
     }
 
+
+    public function delete()
+    {
+        if (!$this->exists) { return parent::delete(); }
+        return \Illuminate\Support\Facades\DB::transaction(function () {
+            $current = static::whereKey($this->getKey())->lockForUpdate()->firstOrFail();
+            $this->setRawAttributes($current->getAttributes(), true);
+            return parent::delete();
+        });
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Venta $venta) {
+            if ($venta->ven_estado !== 'draft' || filled($venta->ven_fel_uuid)
+                || $venta->pagos()->exists() || $venta->vencimientos()->exists()
+                || ProductoMovimiento::where('mop_referencia_tipo', 'VENTA')->where('mop_referencia_id', $venta->getKey())->exists()) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['venta' => 'Solo se pueden borrar borradores sin pagos, vencimientos ni movimientos.']);
+            }
+        });
+    }
+
 }

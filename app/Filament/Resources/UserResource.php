@@ -239,4 +239,10 @@ class UserResource extends Resource
     }
 
 
+
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
+
 }

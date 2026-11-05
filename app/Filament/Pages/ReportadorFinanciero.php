@@ -277,6 +277,7 @@ class ReportadorFinanciero extends Page
     {
         return [
             Action::make('print_servicios')
+                ->authorize(fn () => \App\Support\Access::allows('reportes.ver') && \App\Support\Access::allows('reportes.exportar'))
                 ->label('Saldo Servicios')
                 ->icon('heroicon-o-printer')
                 ->url(fn() => route('reportes.servicios', [
@@ -286,6 +287,7 @@ class ReportadorFinanciero extends Page
                 ->openUrlInNewTab(),
 
             Action::make('print_caja')
+                ->authorize(fn () => \App\Support\Access::allows('reportes.ver') && \App\Support\Access::allows('reportes.exportar'))
                 ->label('Saldo Maquinaria')
                 ->icon('heroicon-o-printer')
                 ->url(fn() => route('reportes.caja', [
@@ -296,5 +298,8 @@ class ReportadorFinanciero extends Page
         ];
     }
 
+
+
+    public static function canAccess(): bool { return \App\Support\Access::allows('reportes.ver'); }
 
 }

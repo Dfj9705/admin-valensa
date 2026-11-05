@@ -47,4 +47,14 @@ class Producto extends Model
         ")
             ->value('stock') ?? 0;
     }
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($record) {
+            if (!(!$record->movimientos()->exists() && !\App\Models\VentaProducto::where('pro_id', $record->getKey())->exists())) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['registro' => 'Este registro tiene historial asociado. Desactívalo en lugar de eliminarlo.']);
+            }
+        });
+    }
+
 }

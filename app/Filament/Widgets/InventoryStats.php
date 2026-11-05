@@ -10,6 +10,7 @@ class InventoryStats extends BaseWidget
 {
     protected function getStats(): array
     {
+        \App\Support\Access::authorize('inventario.ver');
         $products = Producto::all();
 
         $totalStock = $products->sum(fn($product) => $product->pro_stock);
@@ -30,4 +31,7 @@ class InventoryStats extends BaseWidget
                 ->color('warning'),
         ];
     }
+
+    public static function canView(): bool { return \App\Support\Access::allows('inventario.ver'); }
+
 }

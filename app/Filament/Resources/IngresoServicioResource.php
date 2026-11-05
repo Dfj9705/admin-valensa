@@ -109,7 +109,12 @@ class IngresoServicioResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            abort_unless(static::canDelete($record), 403);
+                        }
+                    }),
             ]);
     }
 
@@ -121,4 +126,15 @@ class IngresoServicioResource extends Resource
             'edit' => Pages\EditIngresoServicio::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool { return \App\Support\Access::allows('ingresos_egresos.ver'); }
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('ingresos_egresos.crear'); }
+    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('ingresos_egresos.editar'); }
+    public static function canDelete($record): bool { return static::canDeleteAny() && true; }
+    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('ingresos_egresos.eliminar'); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
+
 }

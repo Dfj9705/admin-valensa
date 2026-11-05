@@ -8,6 +8,7 @@ class TekraContribuyenteService
 {
     public function consultaNit(string $nit): array
     {
+        abort_unless(\App\Support\Access::allows('clientes.crear') || \App\Support\Access::allows('clientes.editar'), 403);
         $payload = [
             'autenticacion' => [
                 'pn_usuario' => config('services.tekra.user'),
@@ -29,6 +30,7 @@ class TekraContribuyenteService
 
     public function consultaCui(string $cui): array
     {
+        abort_unless(\App\Support\Access::allows('clientes.crear') || \App\Support\Access::allows('clientes.editar'), 403);
         $payload = [
             'autenticacion' => [
                 'pn_usuario' => config('services.tekra.user'),

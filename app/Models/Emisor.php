@@ -46,4 +46,14 @@ class Emisor extends Model
     }
 
 
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($record) {
+            if (!(!$record->ventas()->exists())) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['registro' => 'Este registro tiene historial asociado. Desactívalo en lugar de eliminarlo.']);
+            }
+        });
+    }
+
 }

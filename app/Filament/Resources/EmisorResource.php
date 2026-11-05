@@ -84,7 +84,12 @@ class EmisorResource extends Resource
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            abort_unless(static::canDelete($record), 403);
+                        }
+                    }),
             ]);
     }
 
@@ -96,4 +101,15 @@ class EmisorResource extends Resource
             'edit' => Pages\EditEmisor::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool { return \App\Support\Access::allows('emisores_fel.ver'); }
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('emisores_fel.crear'); }
+    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('emisores_fel.editar'); }
+    public static function canDelete($record): bool { return static::canDeleteAny() && !$record->ventas()->exists(); }
+    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('emisores_fel.eliminar'); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
+
 }

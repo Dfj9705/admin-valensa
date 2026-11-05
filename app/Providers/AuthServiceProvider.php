@@ -26,8 +26,8 @@ class AuthServiceProvider extends ServiceProvider
 
         // Dentro de boot()
         Gate::before(function (User $user, string $ability) {
-            return $user->hasRole('superadministrador')
-                ? true
+            return str_contains($ability, '.')
+                ? \App\Support\Access::allows($ability, $user)
                 : null;
         });
     }

@@ -14,6 +14,7 @@ class LatestMovements extends BaseWidget
 
     public function table(Table $table): Table
     {
+        \App\Support\Access::authorize('inventario.ver');
         return $table
             ->query(
                 ProductoMovimiento::query()->latest()->limit(10)
@@ -39,4 +40,7 @@ class LatestMovements extends BaseWidget
                     ->sortable(),
             ]);
     }
+
+    public static function canView(): bool { return \App\Support\Access::allows('inventario.ver'); }
+
 }

@@ -19,12 +19,14 @@ class ListVentas extends ListRecords
         return [
             Actions\CreateAction::make(),
             Action::make('imprimir_saldos')
+                ->authorize(fn () => \App\Support\Access::allows('reportes.ver') && \App\Support\Access::allows('reportes.exportar'))
                 ->label('Imprimir saldos pendientes')
                 ->icon('heroicon-o-printer')
                 ->url(fn() => route('reportes.ventas.pendientes'))
                 ->openUrlInNewTab(),
 
             Action::make('imprimir_deudores')
+                ->authorize(fn () => \App\Support\Access::allows('reportes.ver') && \App\Support\Access::allows('reportes.exportar'))
                 ->label('Reporte de deudores')
                 ->icon('heroicon-o-document-currency-dollar')
                 ->url(fn() => route('reportes.deudores'))

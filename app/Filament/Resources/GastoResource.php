@@ -62,7 +62,12 @@ class GastoResource extends Resource
                         ->relationship('categoria', 'cat_nombre')
                         ->searchable()
                         ->preload()
-                        ->createOptionForm([
+                        ->createOptionAction(fn ($action) => $action->authorize(fn () => \App\Support\Access::allows('categorias_gastos.crear')))
+                            ->createOptionUsing(function (array $data) {
+                                \App\Support\Access::authorize('categorias_gastos.crear');
+                                return \App\Models\CategoriaGasto::create($data)->getKey();
+                            })
+                            ->createOptionForm([
                             TextInput::make('cat_nombre')
                                 ->label('Nombre')
                                 ->required()
@@ -156,7 +161,12 @@ class GastoResource extends Resource
                 ViewAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            abort_unless(static::canDelete($record), 403);
+                        }
+                    }),
             ]);
     }
 
@@ -177,4 +187,15 @@ class GastoResource extends Resource
             'edit' => Pages\EditGasto::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool { return \App\Support\Access::allows('gastos.ver'); }
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('gastos.crear'); }
+    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('gastos.editar'); }
+    public static function canDelete($record): bool { return static::canDeleteAny() && true; }
+    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('gastos.eliminar'); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
+
 }

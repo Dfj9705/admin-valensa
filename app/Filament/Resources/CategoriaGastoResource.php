@@ -75,7 +75,12 @@ class CategoriaGastoResource extends Resource
                 ViewAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+                Tables\Actions\DeleteBulkAction::make()
+                    ->before(function ($records) {
+                        foreach ($records as $record) {
+                            abort_unless(static::canDelete($record), 403);
+                        }
+                    }),
             ]);
     }
 
@@ -87,4 +92,15 @@ class CategoriaGastoResource extends Resource
             'edit' => Pages\EditCategoriaGasto::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool { return \App\Support\Access::allows('categorias_gastos.ver'); }
+    public static function canView($record): bool { return static::canViewAny(); }
+    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('categorias_gastos.crear'); }
+    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('categorias_gastos.editar'); }
+    public static function canDelete($record): bool { return static::canDeleteAny() && !$record->gastos()->exists() && !\App\Models\EgresoServicio::where('cat_id', $record->getKey())->exists(); }
+    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('categorias_gastos.eliminar'); }
+    public static function canForceDelete($record): bool { return false; }
+    public static function canForceDeleteAny(): bool { return false; }
+    public static function canReplicate($record): bool { return false; }
+
 }

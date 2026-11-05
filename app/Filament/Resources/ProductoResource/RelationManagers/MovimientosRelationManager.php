@@ -30,7 +30,7 @@ class MovimientosRelationManager extends RelationManager
         \Illuminate\Database\Eloquent\Model $ownerRecord,
         string $pageClass
     ): bool {
-        return auth()->user()?->can('inventario.ver') ?? false;
+        return \App\Support\Access::allows('inventario.ver') && \App\Support\Access::allows('productos.ver');
     }
 
 
@@ -85,6 +85,7 @@ class MovimientosRelationManager extends RelationManager
                             auth()->user()?->can('inventario.crear') ?? false
                     )
                     ->mutateFormDataUsing(function (array $data): array {
+                        \App\Support\Access::authorize('inventario.crear');
                         $data['mop_tipo'] = 'entrada';
                         return $data;
                     }),
@@ -102,45 +103,18 @@ class MovimientosRelationManager extends RelationManager
                         $data['mop_tipo'] = 'salida';
                         return $data;
                     })
-                    ->before(function (array $data) {
-                        // Validar stock ANTES de guardar salida
-                        DB::transaction(function () use ($data) {
-                            /** @var \App\Models\Producto $producto */
-                            $producto = Producto::where('pro_id', $this->getOwnerRecord()->pro_id)
-                                ->lockForUpdate()
-                                ->firstOrFail();
-                            $stockActual = (int) $producto->pro_stock;
-
-                            $cantidadSalida = (int) $data['mop_cantidad'];
-
-                            if ($cantidadSalida > $stockActual) {
-                                Notification::make()
-                                    ->title('Stock insuficiente')
-                                    ->body("Stock insuficiente. Disponible: {$stockActual}.")
-                                    ->danger()
-                                    ->send();
-                                throw ValidationException::withMessages([
-                                    'mop_cantidad' => "Stock insuficiente. Disponible: {$stockActual}.",
-                                ]);
-                            }
-                        });
-
-
+                    ->using(function (array $data) {
+                        \App\Support\Access::authorize('inventario.crear');
+                        return $this->getOwnerRecord()->movimientos()->create($data);
                     }),
             ])
+            ->actions([]);
 
-            ->actions([
-                Tables\Actions\EditAction::make()
-                    ->authorize(
-                        fn(): bool =>
-                            auth()->user()?->can('inventario.editar') ?? false
-                    ),
-
-                Tables\Actions\DeleteAction::make()
-                    ->authorize(
-                        fn(): bool =>
-                            auth()->user()?->can('inventario.eliminar') ?? false
-                    ),
-            ]);
     }
+
+    protected function canCreate(): bool { return \App\Support\Access::allows('inventario.crear') && \App\Support\Access::allows('inventario.ver'); }
+    protected function canEdit(\Illuminate\Database\Eloquent\Model $record): bool { return false; }
+    protected function canDelete(\Illuminate\Database\Eloquent\Model $record): bool { return false; }
+    protected function canDeleteAny(): bool { return false; }
+
 }

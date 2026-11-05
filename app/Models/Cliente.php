@@ -46,4 +46,14 @@ class Cliente extends Model
     {
         return $this->belongsTo(User::class, 'cli_actualizado_por', 'id');
     }
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($record) {
+            if (!(!\App\Models\Venta::where('ven_cliente_id', $record->getKey())->exists())) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['registro' => 'Este registro tiene historial asociado. Desactívalo en lugar de eliminarlo.']);
+            }
+        });
+    }
+
 }

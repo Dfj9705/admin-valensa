@@ -17,22 +17,22 @@ class ConfirmVenta
      */
     public function handle(Venta $venta, int $userId): Venta
     {
-        if ($venta->ven_estado !== 'draft') {
-            throw ValidationException::withMessages([
-                'venta' => 'La venta no está en borrador.',
-            ]);
-        }
 
-        // Cargar ítems y producto
-        $venta->load('productos');
-
-        if ($venta->productos->isEmpty()) {
-            throw ValidationException::withMessages([
-                'items' => 'La venta no tiene productos.',
-            ]);
-        }
+        \App\Support\Access::authorize('ventas.confirmar');
+        \App\Support\Access::authorize('ventas.ver');
+        abort_unless((int) auth()->id() === $userId, 403);
 
         return DB::transaction(function () use ($venta, $userId) {
+            $venta = Venta::whereKey($venta->getKey())->lockForUpdate()->firstOrFail();
+            if (!in_array($venta->ven_estado, ['draft'], true) || filled($venta->ven_fel_uuid)) {
+                throw ValidationException::withMessages(['venta' => 'El estado actual no permite esta operación.']);
+            }
+            $venta->load('productos');
+            if ($venta->productos->isEmpty()) {
+                throw ValidationException::withMessages(['items' => 'La venta no tiene productos.']);
+            }
+            Producto::whereIn('pro_id', $venta->productos->pluck('pro_id'))->orderBy('pro_id')->lockForUpdate()->get();
+
 
             $subtotalConIvaIncluido = 0;
 
@@ -116,21 +116,22 @@ class ConfirmVenta
      */
     public function handleAnulation(Venta $venta, int $userId): Venta
     {
-        if (!in_array($venta->ven_estado, ['confirmed', 'certified'], true)) {
-            throw ValidationException::withMessages([
-                'venta' => 'La venta no está confirmada/certificada para anulación.',
-            ]);
-        }
 
-        $venta->load('productos');
-
-        if ($venta->productos->isEmpty()) {
-            throw ValidationException::withMessages([
-                'items' => 'La venta no tiene productos.',
-            ]);
-        }
+        \App\Support\Access::authorize('ventas.anular');
+        \App\Support\Access::authorize('ventas.ver');
+        abort_unless((int) auth()->id() === $userId, 403);
 
         return DB::transaction(function () use ($venta, $userId) {
+            $venta = Venta::whereKey($venta->getKey())->lockForUpdate()->firstOrFail();
+            if (!in_array($venta->ven_estado, ['confirmed', 'certified'], true) || (filled($venta->ven_fel_uuid) && $venta->ven_fel_status !== 'void')) {
+                throw ValidationException::withMessages(['venta' => 'El estado actual no permite esta operación.']);
+            }
+            $venta->load('productos');
+            if ($venta->productos->isEmpty()) {
+                throw ValidationException::withMessages(['items' => 'La venta no tiene productos.']);
+            }
+            Producto::whereIn('pro_id', $venta->productos->pluck('pro_id'))->orderBy('pro_id')->lockForUpdate()->get();
+
 
             foreach ($venta->productos as $producto) {
 
@@ -156,7 +157,7 @@ class ConfirmVenta
 
             $venta->update([
                 'ven_estado' => 'cancelled', // o 'void' si manejas otro estado interno
-                'updated_by' => $userId,
+                'ven_updated_by' => $userId,
             ]);
 
             return $venta->fresh(['productos']);

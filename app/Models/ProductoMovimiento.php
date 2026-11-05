@@ -30,4 +30,34 @@ class ProductoMovimiento extends Model
     {
         return $this->belongsTo(Producto::class, 'pro_id', 'pro_id');
     }
+
+    public function save(array $options = [])
+    {
+        if ($this->exists) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['movimiento' => 'El historial es inmutable. Registra un movimiento de compensación.']);
+        }
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($options) {
+            $producto = Producto::whereKey($this->pro_id)->lockForUpdate()->firstOrFail();
+            if (!in_array($this->mop_tipo, ['entrada', 'devolucion', 'salida', 'venta'], true) || !is_numeric($this->mop_cantidad) || $this->mop_cantidad <= 0) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['mop_cantidad' => 'Tipo o cantidad de movimiento inválidos.']);
+            }
+            if (in_array($this->mop_tipo, ['salida', 'venta'], true)) {
+                // A current locking read avoids an older REPEATABLE READ snapshot.
+                $stock = $producto->movimientos()->lockForUpdate()->get(['mop_tipo', 'mop_cantidad'])
+                    ->sum(fn ($m) => in_array($m->mop_tipo, ['entrada', 'devolucion'], true) ? $m->mop_cantidad : -$m->mop_cantidad);
+                if ($this->mop_cantidad > $stock) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['mop_cantidad' => "Stock insuficiente. Disponible: {$stock}."]);
+                }
+            }
+            return parent::save($options);
+        });
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function () {
+            throw \Illuminate\Validation\ValidationException::withMessages(['movimiento' => 'El historial es inmutable. Registra un movimiento de compensación.']);
+        });
+    }
+
 }

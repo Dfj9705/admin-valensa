@@ -12,6 +12,7 @@ class MovementsChart extends ChartWidget
     protected int|string|array $columnSpan = 'full';
     protected function getData(): array
     {
+        \App\Support\Access::authorize('inventario.ver');
         $from = now()->subDays(30);
 
         $data = ProductoMovimiento::query()
@@ -105,4 +106,7 @@ class MovementsChart extends ChartWidget
             ],
         ];
     }
+
+    public static function canView(): bool { return \App\Support\Access::allows('inventario.ver'); }
+
 }

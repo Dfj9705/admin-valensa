@@ -24,4 +24,14 @@ class CategoriaGasto extends Model
     {
         return $this->hasMany(Gasto::class, 'cat_id');
     }
+
+    protected static function booted(): void
+    {
+        static::deleting(function ($record) {
+            if (!(!$record->gastos()->exists() && !\App\Models\EgresoServicio::where('cat_id', $record->getKey())->exists())) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['registro' => 'Este registro tiene historial asociado. Desactívalo en lugar de eliminarlo.']);
+            }
+        });
+    }
+
 }

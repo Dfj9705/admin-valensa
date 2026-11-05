@@ -16,6 +16,8 @@ class ReportesController extends Controller
 {
     public function productos(Request $request)
     {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
         $tableQuery = app(\App\Filament\Resources\ProductoResource::class)
             ->getEloquentQuery();
 
@@ -39,6 +41,8 @@ class ReportesController extends Controller
 
     public function servicios(Request $request)
     {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
         $desde = $request->query('desde');
         $hasta = $request->query('hasta');
 
@@ -88,6 +92,8 @@ class ReportesController extends Controller
 
     public function caja(Request $request)
     {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
         $desde = $request->query('desde');
         $hasta = $request->query('hasta');
 
@@ -148,6 +154,8 @@ class ReportesController extends Controller
 
     public function ventasPendientes(Request $request)
     {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
 
 
         $ventas = Venta::query()
@@ -198,6 +206,8 @@ class ReportesController extends Controller
 
     public function deudores(Request $request)
     {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
         $ventas = Venta::query()
             ->select([
                 'ven_id',
@@ -278,6 +288,8 @@ class ReportesController extends Controller
 
     public function catalogo(Request $request)
     {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
         $tableQuery = app(\App\Filament\Resources\ProductoResource::class)
             ->getEloquentQuery();
 

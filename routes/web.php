@@ -19,22 +19,22 @@ Route::get('/', function () {
 });
 
 Route::get('/admin/products/print', [ReportesController::class, 'productos'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('products.print');
 
 Route::get('/reportes/servicios', [ReportesController::class, 'servicios'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('reportes.servicios');
 Route::get('/reportes/caja', [ReportesController::class, 'caja'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('reportes.caja');
 Route::get('/reportes/ventas-pendientes', [ReportesController::class, 'ventasPendientes'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('reportes.ventas.pendientes');
 Route::get('/reportes/catalogo', [ReportesController::class, 'catalogo'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('catalogo.print');
 
 Route::get('/reportes/deudores', [ReportesController::class, 'deudores'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('reportes.deudores');
