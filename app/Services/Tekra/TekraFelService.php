@@ -11,138 +11,148 @@ use SoapVar;
 
 class TekraFelService
 {
-  public function certificarFactura(Venta $venta): array
-  {
-    $resp = null;
-    $xml = $this->buildFacturaXml($venta);
+    public function certificarFactura(Venta $venta): array
+    {
+        $resp = null;
+        $this->validarVencimientos($venta);
 
-    // if (config('app.debug') == true) {
-    logger("XML a certificar:" . $xml);
-    // }
+        $xml = $this->buildFacturaXml($venta);
 
-
-    $wsdl = config('services.tekra_fel.wsdl');
-
-    $client = new SoapClient($wsdl, [
-      'trace' => true,
-      'exceptions' => true,
-      'cache_wsdl' => WSDL_CACHE_NONE,
-    ]);
-    $client->__setLocation(config('services.tekra_fel.url'));
-    // Nodo Autenticacion (según manual)
-    // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador 
-    $auth = [
-      'pn_usuario' => $venta->emisor->emi_tekra_usuario,
-      'pn_clave' => $venta->emisor->emi_tekra_clave,
-      'pn_cliente' => $venta->emisor->emi_tekra_cliente,
-      'pn_contrato' => $venta->emisor->emi_tekra_contrato,
-      'pn_id_origen' => config('services.tekra_fel.id_origen'),
-      'pn_ip_origen' => config('services.tekra_fel.ip_origen'),
-      'pn_firmar_emisor' => config('services.tekra_fel.firmar_emisor', 'SI'),
-      'pn_validar_identificador' => config('services.tekra_fel.validar_identificador', 'SI'),
-    ];
-
-    // $auth = [
-    //   'pn_usuario' => 'tekra_api',
-    //   'pn_clave' => '123456789',
-    //   'pn_cliente' => '2121010001',
-    //   'pn_contrato' => '2122010001',
-    //   'pn_id_origen' => 'Armeria',
-    //   'pn_ip_origen' => '127.0.0.1',
-    //   'pn_firmar_emisor' => 'SI',
-    //   'pn_validar_identificador' => 'SI',
-    // ];
-    $xmlLimpio = preg_replace('/^<!\[CDATA\[(.*)\]\]>$/s', '$1', trim($xml));
-
-    // (opcional) quitar el header xml si el servicio no lo quiere dentro:
-    $xmlLimpio = preg_replace('/^\s*<\?xml[^>]+\?>\s*/', '', $xmlLimpio);
-
-    $documentoNodo = '<Documento><![CDATA[' . $xmlLimpio . ']]></Documento>';
-    $documento = new SoapVar(
-      $documentoNodo,
-      XSD_ANYXML,
-      null,
-      null,
-      'Documento'
-    );
+        // if (config('app.debug') == true) {
+        //logger("XML a certificar:" . $xml);
+        // }
 
 
-    try {
-      // El método recibe 2 nodos: Autenticacion y Documento(CDATA) 
-      $resp = $client->__soapCall('CertificacionDocumento', [
-        [
-          'Autenticacion' => $auth,
-          'Documento' => $documento,
-        ]
-      ]);
-      // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
-      // Ejemplo/valores retorno: UUID, serie, numero, pdf base64 
-      logger('Autenticacion: ' . json_encode($auth));
-      logger("Respuesta de Tekra: " . json_encode($resp));
-      return [
-        'raw' => $resp,
-        'resultado' => (string) ($resp->ResultadoCertificacion ?? ''),
-        'documento_certificado' => (string) ($resp->DocumentoCertificado ?? ''),
-        'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
-        'qr' => (string) ($resp->CodigoQR ?? ''),
-      ];
-    } catch (SoapFault $sf) {
-      logger('SOAP fault: ' . $sf->getMessage());
-      logger('SOAP location: ' . $client->__getLocation());
-      logger('Last request headers: ' . $client->__getLastRequestHeaders());
-      logger('Last request: ' . $client->__getLastRequest());
-      logger('Last response: ' . $client->__getLastResponse());
-      throw $sf;
+        $wsdl = config('services.tekra_fel.wsdl');
+
+        $client = new SoapClient($wsdl, [
+            'trace' => true,
+            'exceptions' => true,
+            'cache_wsdl' => WSDL_CACHE_NONE,
+        ]);
+        $client->__setLocation(config('services.tekra_fel.url'));
+        // Nodo Autenticacion (según manual)
+        // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador
+        $auth = [
+            'pn_usuario' => $venta->emisor->emi_tekra_usuario,
+            'pn_clave' => $venta->emisor->emi_tekra_clave,
+            'pn_cliente' => $venta->emisor->emi_tekra_cliente,
+            'pn_contrato' => $venta->emisor->emi_tekra_contrato,
+            'pn_id_origen' => config('services.tekra_fel.id_origen'),
+            'pn_ip_origen' => config('services.tekra_fel.ip_origen'),
+            'pn_firmar_emisor' => config('services.tekra_fel.firmar_emisor', 'SI'),
+            'pn_validar_identificador' => config('services.tekra_fel.validar_identificador', 'SI'),
+        ];
+
+        // $auth = [
+        //   'pn_usuario' => 'tekra_api',
+        //   'pn_clave' => '123456789',
+        //   'pn_cliente' => '2121010001',
+        //   'pn_contrato' => '2122010001',
+        //   'pn_id_origen' => 'Armeria',
+        //   'pn_ip_origen' => '127.0.0.1',
+        //   'pn_firmar_emisor' => 'SI',
+        //   'pn_validar_identificador' => 'SI',
+        // ];
+        $xmlLimpio = preg_replace('/^<!\[CDATA\[(.*)\]\]>$/s', '$1', trim($xml));
+
+        // (opcional) quitar el header xml si el servicio no lo quiere dentro:
+        $xmlLimpio = preg_replace('/^\s*<\?xml[^>]+\?>\s*/', '', $xmlLimpio);
+
+        $documentoNodo = '<Documento><![CDATA[' . $xmlLimpio . ']]></Documento>';
+        $documento = new SoapVar(
+            $documentoNodo,
+            XSD_ANYXML,
+            null,
+            null,
+            'Documento'
+        );
+
+
+        try {
+            // El método recibe 2 nodos: Autenticacion y Documento(CDATA)
+            $resp = $client->__soapCall('CertificacionDocumento', [
+                [
+                    'Autenticacion' => $auth,
+                    'Documento' => $documento,
+                ]
+            ]);
+            // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
+            // Ejemplo/valores retorno: UUID, serie, numero, pdf base64
+            //logger('Autenticacion: ' . json_encode($auth));
+            //logger("Respuesta de Tekra: " . json_encode($resp));
+            return [
+                'raw' => $resp,
+                'resultado' => (string) ($resp->ResultadoCertificacion ?? ''),
+                'documento_certificado' => (string) ($resp->DocumentoCertificado ?? ''),
+                'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
+                'qr' => (string) ($resp->CodigoQR ?? ''),
+            ];
+        } catch (SoapFault $sf) {
+
+            logger()->error('Error SOAP al certificar FEL', [
+                'venta_id' => $venta->ven_id,
+                'tipo_dte' => $venta->ven_tipo_dte,
+                'codigo' => $sf->faultcode ?? null,
+            ]);
+
+            throw $sf;
+        }
     }
-  }
 
-  private function buildFacturaXml(Venta $venta): string
-  {
-    $venta->load('cliente', 'productos');
+    private function buildFacturaXml(Venta $venta): string
+    {
+        $venta->load('cliente', 'productos');
 
-    // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
-    $emisorNit = $venta->emisor->emi_nit;
-    $emisorNombre = $venta->emisor->emi_nombre_emisor;
-    $nombreComercial = $venta->emisor->emi_nombre_comercial;
-    $emisorAfiliacion = $venta->emisor->emi_afiliacion_iva;
-    $establecimiento = $venta->emisor->emi_codigo_establecimiento;
-    $direccion = $venta->emisor->emi_direccion;
-    $municipio = $venta->emisor->emi_municipio;
-    $departamento = $venta->emisor->emi_departamento;
-    $pais = $venta->emisor->emi_pais;
-    $codigoPostal = $venta->emisor->emi_codigo_postal;
+        $tipoDte = $venta->ven_tipo_dte ?: 'FACT';
 
-    $receptorId = $venta->cliente?->cli_nit ?: ($venta->cliente?->cli_cui ?: 'CF');
-    $receptorNombre = $venta->cliente?->cli_nombre ?: ($venta->cliente?->cli_nombre ?: 'CONSUMIDOR FINAL');
-    $correo = $venta->cliente?->cli_email ?: '';
+        if (!in_array($tipoDte, ['FACT', 'FCAM'], true)) {
+            throw new \RuntimeException('Tipo de documento FEL no válido.');
+        }
 
-    $numeroAcceso = random_int(100000000, 999999999); // 9 dígitos (SAT)
+        // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
+        $emisorNit = $venta->emisor->emi_nit;
+        $emisorNombre = $venta->emisor->emi_nombre_emisor;
+        $nombreComercial = $venta->emisor->emi_nombre_comercial;
+        $emisorAfiliacion = $venta->emisor->emi_afiliacion_iva;
+        $establecimiento = $venta->emisor->emi_codigo_establecimiento;
+        $direccion = $venta->emisor->emi_direccion;
+        $municipio = $venta->emisor->emi_municipio;
+        $departamento = $venta->emisor->emi_departamento;
+        $pais = $venta->emisor->emi_pais;
+        $codigoPostal = $venta->emisor->emi_codigo_postal;
 
-    $fecha = now()->format('Y-m-d\TH:i:sP'); // -06:00 incluido
+        $receptorId = $venta->cliente?->cli_nit ?: ($venta->cliente?->cli_cui ?: 'CF');
+        $receptorNombre = $venta->cliente?->cli_nombre ?: ($venta->cliente?->cli_nombre ?: 'CONSUMIDOR FINAL');
+        $correo = $venta->cliente?->cli_email ?: '';
 
-    $itemsXml = '';
-    $totalImpuestoIva = 0.0;
-    $granTotal = 0.0;
+        $numeroAcceso = random_int(100000000, 999999999); // 9 dígitos (SAT)
 
-    foreach ($venta->productos as $idx => $producto) {
-      $linea = $idx + 1;
-      $cantidad = (float) $producto->qty;
-      $precioUnit = round((float) $producto->unit_price, 2);
-      $descuento = round((float) $producto->discount, 2);
-      $precio = round($cantidad * $precioUnit, 2);
-      $precioFinal = round($precio - $descuento, 2);
+        $fecha = now()->format('Y-m-d\TH:i:sP'); // -06:00 incluido
 
-      // Asumimos precio incluye IVA (12%); para FEL se reporta MontoGravable + MontoImpuesto.
-      // Ejemplo del manual: MontoGravable y MontoImpuesto por item 
-      $montoGravable = round($precioFinal / 1.12, 5);
-      $montoImpuesto = round($montoGravable * 0.12, 5);
+        $itemsXml = '';
+        $totalImpuestoIva = 0.0;
+        $granTotal = 0.0;
 
-      $totalImpuestoIva += $montoImpuesto;
-      $granTotal += $precioFinal;
+        foreach ($venta->productos as $idx => $producto) {
+            $linea = $idx + 1;
+            $cantidad = (float) $producto->qty;
+            $precioUnit = round((float) $producto->unit_price, 2);
+            $descuento = round((float) $producto->discount, 2);
+            $precio = round($cantidad * $precioUnit, 2);
+            $precioFinal = round($precio - $descuento, 2);
 
-      $desc = htmlspecialchars($producto->description_snapshot ?? 'Item', ENT_XML1);
+            // Asumimos precio incluye IVA (12%); para FEL se reporta MontoGravable + MontoImpuesto.
+            // Ejemplo del manual: MontoGravable y MontoImpuesto por item
+            $montoGravable = round($precioFinal / 1.12, 5);
+            $montoImpuesto = round($montoGravable * 0.12, 5);
 
-      $itemsXml .= <<<XML
+            $totalImpuestoIva += $montoImpuesto;
+            $granTotal += $precioFinal;
+
+            $desc = htmlspecialchars($producto->description_snapshot ?? 'Item', ENT_XML1);
+
+            $itemsXml .= <<<XML
 <dte:Item NumeroLinea="{$linea}" BienOServicio="B">
   <dte:Cantidad>{$cantidad}</dte:Cantidad>
   <dte:Descripcion>{$desc}</dte:Descripcion>
@@ -160,16 +170,64 @@ class TekraFelService
   <dte:Total>{$precioFinal}</dte:Total>
 </dte:Item>
 XML;
-    }
+        }
 
-    $totalImpuestoIva = round($totalImpuestoIva, 5);
-    $granTotal = round($granTotal, 5);
+        $totalImpuestoIva = round($totalImpuestoIva, 5);
+        $granTotal = round($granTotal, 5);
 
-    // DECertificador: identificador único para evitar doble certificación 
-    $deCertificador = 'SALE-VALENSA-' . $venta->ven_id;
+        // DECertificador: identificador único para evitar doble certificación
+        $deCertificador = 'SALE-VALENSA-' . $venta->ven_id;
 
-    // Nota: el XML debe ir en CDATA y cuidar caracteres (& debe ir como &amp;) 
-    return <<<XML
+
+        $complementoFCAM = '';
+
+        if ($tipoDte === 'FCAM') {
+            $venta->load('vencimientos');
+
+            $abonosXml = '';
+
+            foreach ($venta->vencimientos->sortBy('vve_numero') as $vencimiento) {
+                $numero = (int) $vencimiento->vve_numero;
+
+                $fechaVencimiento = $vencimiento
+                    ->vve_fecha_vencimiento
+                    ->format('Y-m-d');
+
+                $monto = number_format(
+                    (float) $vencimiento->vve_monto,
+                    2,
+                    '.',
+                    ''
+                );
+
+                $abonosXml .= <<<XML
+<cfc:Abono>
+    <cfc:NumeroAbono>{$numero}</cfc:NumeroAbono>
+    <cfc:FechaVencimiento>{$fechaVencimiento}</cfc:FechaVencimiento>
+    <cfc:MontoAbono>{$monto}</cfc:MontoAbono>
+</cfc:Abono>
+
+XML;
+            }
+
+            $complementoFCAM = <<<XML
+<dte:Complementos>
+    <dte:Complemento
+        IDComplemento="AbonosFacturaCambiaria"
+        NombreComplemento="AbonosFacturaCambiaria"
+        URIComplemento="http://www.sat.gob.gt/dte/fel/CompCambiaria/0.1.0">
+        <cfc:AbonosFacturaCambiaria Version="1">
+            {$abonosXml}
+        </cfc:AbonosFacturaCambiaria>
+    </dte:Complemento>
+</dte:Complementos>
+
+XML;
+        }
+
+
+        // Nota: el XML debe ir en CDATA y cuidar caracteres (& debe ir como &amp;)
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <dte:GTDocumento Version="0.1"
   xmlns:dte="http://www.sat.gob.gt/dte/fel/0.2.0"
@@ -182,7 +240,7 @@ XML;
   <dte:SAT ClaseDocumento="dte">
     <dte:DTE ID="DatosCertificados">
       <dte:DatosEmision ID="DatosEmision">
-        <dte:DatosGenerales Tipo="FACT" FechaHoraEmision="{$fecha}" CodigoMoneda="GTQ" NumeroAcceso="{$numeroAcceso}" />
+        <dte:DatosGenerales Tipo="{$tipoDte}" FechaHoraEmision="{$fecha}" CodigoMoneda="GTQ" NumeroAcceso="{$numeroAcceso}" />
         <dte:Emisor NITEmisor="{$emisorNit}" NombreEmisor="{$emisorNombre}" CodigoEstablecimiento="{$establecimiento}" NombreComercial="{$nombreComercial}" CorreoEmisor="" AfiliacionIVA="{$emisorAfiliacion}">
           <dte:DireccionEmisor>
             <dte:Direccion>{$direccion}</dte:Direccion>
@@ -214,7 +272,8 @@ XML;
           </dte:TotalImpuestos>
           <dte:GranTotal>{$granTotal}</dte:GranTotal>
         </dte:Totales>
-      </dte:DatosEmision>
+        {$complementoFCAM}
+        </dte:DatosEmision>
     </dte:DTE>
 
     <dte:Adenda>
@@ -223,98 +282,98 @@ XML;
   </dte:SAT>
 </dte:GTDocumento>
 XML;
-  }
-
-  public function anularFactura(Venta $venta, string $motivo): array
-  {
-    $xml = $this->buildAnulacionXML($venta, $motivo);
-
-    $wsdl = config('services.tekra_fel.wsdl');
-
-    $client = new SoapClient($wsdl, [
-      'trace' => true,
-      'exceptions' => true,
-      'cache_wsdl' => WSDL_CACHE_NONE,
-    ]);
-    $client->__setLocation(config('services.tekra_fel.url'));
-    // Nodo Autenticacion (según manual)
-    // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador 
-    $auth = [
-      'pn_usuario' => $venta->emisor->emi_tekra_usuario,
-      'pn_clave' => $venta->emisor->emi_tekra_clave,
-      'pn_cliente' => $venta->emisor->emi_tekra_cliente,
-      'pn_contrato' => $venta->emisor->emi_tekra_contrato,
-      'pn_id_origen' => config('services.tekra_fel.id_origen'),
-      'pn_ip_origen' => config('services.tekra_fel.ip_origen'),
-      'pn_firmar_emisor' => config('services.tekra_fel.firmar_emisor', 'SI'),
-    ];
-
-    // $auth = [
-    //   'pn_usuario' => 'tekra_api',
-    //   'pn_clave' => '123456789',
-    //   'pn_cliente' => '2121010001',
-    //   'pn_contrato' => '2122010001',
-    //   'pn_id_origen' => 'Armeria',
-    //   'pn_ip_origen' => '127.0.0.1',
-    //   'pn_firmar_emisor' => 'SI',
-    //   'pn_validar_identificador' => 'SI',
-    // ];
-    $xmlLimpio = preg_replace('/^<!\[CDATA\[(.*)\]\]>$/s', '$1', trim($xml));
-
-    $documentoNodo = '<Documento><![CDATA[' . $xmlLimpio . ']]></Documento>';
-    $documento = new SoapVar(
-      $documentoNodo,
-      XSD_ANYXML,
-      null,
-      null,
-      'Documento'
-    );
-
-    try {
-      // El método recibe 2 nodos: Autenticacion y Documento(CDATA) 
-      $resp = $client->__soapCall('AnulacionDocumento', [
-        [
-          'Autenticacion' => $auth,
-          'Documento' => $documento,
-        ]
-      ]);
-      // logger($client->__getLastRequest());
-      // logger($client->__getLastResponse());
-      // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
-      // Ejemplo/valores retorno: UUID, serie, numero, pdf base64 
-      return [
-        'raw' => $resp,
-        'resultado' => (string) ($resp->ResultadoAnulacion ?? ''),
-        'documento_certificado' => (string) ($resp->AnulacionCertificada ?? ''),
-        'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
-      ];
-    } catch (SoapFault $sf) {
-      logger('SOAP fault: ' . $sf->getMessage());
-      logger('SOAP location: ' . $client->__getLocation());
-      logger('Last request headers: ' . $client->__getLastRequestHeaders());
-      logger('Last request: ' . $client->__getLastRequest());
-      logger('Last response: ' . $client->__getLastResponse());
-      throw $sf;
     }
-  }
 
-  private function buildAnulacionXML(Venta $venta, $motivo): string
-  {
-    $venta->load('cliente');
+    public function anularFactura(Venta $venta, string $motivo): array
+    {
+        $xml = $this->buildAnulacionXML($venta, $motivo);
 
-    // logger($venta->cliente->cli_nit);
+        $wsdl = config('services.tekra_fel.wsdl');
 
-    // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
-    $emisorNit = $venta->emisor->emi_nit;
-    $uuid = $venta->ven_fel_uuid;
-    // str_replace('-06:00', '', str_replace('T', ' ', $fechaHoraEmision)),
-    $fechaHoraEmision = str_replace(' ', 'T', $venta->ven_fel_fecha_hora_emision) . '-06:00';
-    $nitReceptor = $venta->cliente->cli_nit;
+        $client = new SoapClient($wsdl, [
+            'trace' => true,
+            'exceptions' => true,
+            'cache_wsdl' => WSDL_CACHE_NONE,
+        ]);
+        $client->__setLocation(config('services.tekra_fel.url'));
+        // Nodo Autenticacion (según manual)
+        // pn_validar_identificador: SI/NO valida campo Adenda.DECertificador
+        $auth = [
+            'pn_usuario' => $venta->emisor->emi_tekra_usuario,
+            'pn_clave' => $venta->emisor->emi_tekra_clave,
+            'pn_cliente' => $venta->emisor->emi_tekra_cliente,
+            'pn_contrato' => $venta->emisor->emi_tekra_contrato,
+            'pn_id_origen' => config('services.tekra_fel.id_origen'),
+            'pn_ip_origen' => config('services.tekra_fel.ip_origen'),
+            'pn_firmar_emisor' => config('services.tekra_fel.firmar_emisor', 'SI'),
+        ];
+
+        // $auth = [
+        //   'pn_usuario' => 'tekra_api',
+        //   'pn_clave' => '123456789',
+        //   'pn_cliente' => '2121010001',
+        //   'pn_contrato' => '2122010001',
+        //   'pn_id_origen' => 'Armeria',
+        //   'pn_ip_origen' => '127.0.0.1',
+        //   'pn_firmar_emisor' => 'SI',
+        //   'pn_validar_identificador' => 'SI',
+        // ];
+        $xmlLimpio = preg_replace('/^<!\[CDATA\[(.*)\]\]>$/s', '$1', trim($xml));
+
+        $documentoNodo = '<Documento><![CDATA[' . $xmlLimpio . ']]></Documento>';
+        $documento = new SoapVar(
+            $documentoNodo,
+            XSD_ANYXML,
+            null,
+            null,
+            'Documento'
+        );
+
+        try {
+            // El método recibe 2 nodos: Autenticacion y Documento(CDATA)
+            $resp = $client->__soapCall('AnulacionDocumento', [
+                [
+                    'Autenticacion' => $auth,
+                    'Documento' => $documento,
+                ]
+            ]);
+            // logger($client->__getLastRequest());
+            // logger($client->__getLastResponse());
+            // TEKRA suele devolver strings dentro de nodos (ResultadoCertificacion JSON y otros)
+            // Ejemplo/valores retorno: UUID, serie, numero, pdf base64
+            return [
+                'raw' => $resp,
+                'resultado' => (string) ($resp->ResultadoAnulacion ?? ''),
+                'documento_certificado' => (string) ($resp->AnulacionCertificada ?? ''),
+                'pdf_base64' => (string) ($resp->RepresentacionGrafica ?? ''),
+            ];
+        } catch (SoapFault $sf) {
+            logger('SOAP fault: ' . $sf->getMessage());
+            logger('SOAP location: ' . $client->__getLocation());
+            logger('Last request headers: ' . $client->__getLastRequestHeaders());
+            logger('Last request: ' . $client->__getLastRequest());
+            logger('Last response: ' . $client->__getLastResponse());
+            throw $sf;
+        }
+    }
+
+    private function buildAnulacionXML(Venta $venta, $motivo): string
+    {
+        $venta->load('cliente');
+
+        // logger($venta->cliente->cli_nit);
+
+        // ⚠️ Ajusta estos datos del emisor a tu config/tabla (por ahora hardcode/config)
+        $emisorNit = $venta->emisor->emi_nit;
+        $uuid = $venta->ven_fel_uuid;
+        // str_replace('-06:00', '', str_replace('T', ' ', $fechaHoraEmision)),
+        $fechaHoraEmision = str_replace(' ', 'T', $venta->ven_fel_fecha_hora_emision) . '-06:00';
+        $nitReceptor = $venta->cliente->cli_nit;
 
 
-    $fecha = now()->format('Y-m-d\TH:i:sP'); // -06:00 incluido
+        $fecha = now()->format('Y-m-d\TH:i:sP'); // -06:00 incluido
 
-    return <<<XML
+        return <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <dte:GTAnulacionDocumento Version="0.1"
   xmlns:dte="http://www.sat.gob.gt/dte/fel/0.1.0"
@@ -327,5 +386,67 @@ XML;
   </dte:SAT>
 </dte:GTAnulacionDocumento>
 XML;
-  }
+    }
+
+
+    private function validarVencimientos(Venta $venta): void
+    {
+        if ($venta->ven_tipo_dte !== 'FCAM') {
+            return;
+        }
+
+        $venta->load('vencimientos');
+
+        $vencimientos = $venta->vencimientos;
+
+        if ($vencimientos->isEmpty()) {
+            throw new \RuntimeException(
+                'La factura cambiaria debe tener al menos un vencimiento.'
+            );
+        }
+
+        $totalCentavos = (int) round(
+            (float) $venta->ven_total * 100
+        );
+
+        $sumaCentavos = 0;
+
+        foreach ($vencimientos as $vencimiento) {
+            if (!$vencimiento->vve_fecha_vencimiento) {
+                throw new \RuntimeException(
+                    'Todos los abonos deben tener fecha de vencimiento.'
+                );
+            }
+
+            $montoCentavos = (int) round(
+                (float) $vencimiento->vve_monto * 100
+            );
+
+            if ($montoCentavos <= 0) {
+                throw new \RuntimeException(
+                    'Los montos de los abonos deben ser mayores que cero.'
+                );
+            }
+
+            $sumaCentavos += $montoCentavos;
+        }
+
+        if ($sumaCentavos !== $totalCentavos) {
+            throw new \RuntimeException(
+                'La suma de los vencimientos (Q ' .
+                number_format($sumaCentavos / 100, 2) .
+                ') debe coincidir con el total de la factura (Q ' .
+                number_format($totalCentavos / 100, 2) .
+                ').'
+            );
+        }
+    }
+
+    public function generarXmlFactura(Venta $venta): string
+    {
+        $this->validarVencimientos($venta);
+
+        return $this->buildFacturaXml($venta);
+    }
+
 }

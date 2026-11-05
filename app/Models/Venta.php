@@ -45,6 +45,8 @@ class Venta extends Model
         'ven_updated_by',
 
         'ven_emisor_id',
+
+        'ven_tipo_dte',
     ];
 
     protected $casts = [
@@ -56,6 +58,7 @@ class Venta extends Model
         'ven_fel_fecha_hora_emision' => 'datetime',
         'ven_fel_fecha_hora_certificacion' => 'datetime',
         // fel_fecha_hora_anulacion la dejaste string en DB
+        'ven_tipo_dte' => 'string',
     ];
 
     // Relaciones
@@ -103,4 +106,14 @@ class Venta extends Model
     {
         return (string) ((float) $this->ven_total - (float) $this->pagos()->sum('vpa_monto'));
     }
+
+    public function vencimientos(): HasMany
+    {
+        return $this->hasMany(
+            VentaVencimiento::class,
+            'ven_id',
+            'ven_id'
+        )->orderBy('vve_numero');
+    }
+
 }

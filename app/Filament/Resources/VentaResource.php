@@ -15,6 +15,7 @@ use App\Services\Tekra\TekraContribuyenteService;
 use Filament\Forms;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -147,6 +148,27 @@ class VentaResource extends Resource
                             ->disabled()
                             ->dehydrated()
                             ->required(),
+
+
+                        Select::make('ven_tipo_dte')
+                            ->label('Tipo de documento FEL')
+                            ->options([
+                                'FACT' => 'Factura (FACT)',
+                                'FCAM' => 'Factura cambiaria (FCAM)',
+                            ])
+                            ->default('FACT')
+                            ->required()
+                            ->native(false)
+                            ->live()
+                            ->disabled(
+                                fn($record) =>
+                                    $record && $record->ven_estado !== 'draft'
+                            )
+                            ->dehydrated()
+                            ->helperText(
+                                'Selecciona factura cambiaria para configurar los vencimientos de pago.'
+                            ),
+
                     ]),
 
                 Repeater::make('productos') // nombre de la relación hasMany
@@ -248,6 +270,43 @@ class VentaResource extends Resource
                     ])
                     ->itemLabel(fn(array $state): ?string => $state['description_snapshot'] ?? 'Producto')
                     ->reorderable(false),
+
+
+                Section::make('Vencimientos de factura cambiaria')
+                    ->description('Configura uno o varios abonos programados.')
+                    ->visible(fn(Get $get) => $get('ven_tipo_dte') === 'FCAM')
+                    ->schema([
+
+
+                        Repeater::make('vencimientos')
+                            ->label('Abonos programados')
+                            ->relationship()
+                            ->defaultItems(0)
+                            ->addActionLabel('Agregar vencimiento')
+                            ->reorderable(false)
+                            ->columns(2)
+                            ->minItems(1)
+                            ->disabled(
+                                fn($record) =>
+                                    $record && $record->ven_estado !== 'draft'
+                            )
+                            ->schema([
+                                DatePicker::make('vve_fecha_vencimiento')
+                                    ->label('Fecha de vencimiento')
+                                    ->native(false)
+                                    ->required(),
+
+                                TextInput::make('vve_monto')
+                                    ->label('Monto')
+                                    ->numeric()
+                                    ->prefix('Q')
+                                    ->minValue(0.01)
+                                    ->required(),
+                            ]),
+
+
+                    ])
+                    ->columnSpanFull(),
 
 
                 Section::make('Totales')

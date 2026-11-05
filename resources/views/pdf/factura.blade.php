@@ -69,7 +69,11 @@
         <div class="box center">
             <p>DOCUMENTO TRIBUTARIO</p>
             <p>ELECTRÓNICO</p>
-            <p><strong>FACTURA</strong></p>
+            <p>
+                <strong>
+                    {{ $venta->ven_tipo_dte === 'FCAM' ? 'FACTURA CAMBIARIA' : 'FACTURA' }}
+                </strong>
+            </p>
             <br>
             <p>SERIE: {{ $venta->ven_fel_serie }}</p>
             <p>NUMERO: {{ $venta->ven_fel_numero }}</p>
@@ -154,6 +158,55 @@
     </div>
 </div>
 
+
+{{-- VENCIMIENTOS DE FACTURA CAMBIARIA --}}
+@if ($venta->ven_tipo_dte === 'FCAM')
+    <div class="row">
+        <div class="col" style="width:98%">
+            <div class="box">
+                <p style="font-weight:bold; margin-bottom:10px;">
+                    DETALLE DE ABONOS - FACTURA CAMBIARIA
+                </p>
+
+                <table style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th style="width:20%;">No. de abono</th>
+                            <th style="width:40%;">Fecha de vencimiento</th>
+                            <th style="width:40%;">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($venta->vencimientos as $vencimiento)
+                            <tr>
+                                <td>{{ $vencimiento->vve_numero }}</td>
+                                <td>
+                                    {{ $vencimiento->vve_fecha_vencimiento->format('d/m/Y') }}
+                                </td>
+                                <td>
+                                    Q {{ number_format($vencimiento->vve_monto, 2) }}
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        <tr>
+                            <td colspan="2" style="text-align:right;">
+                                <strong>TOTAL DE ABONOS</strong>
+                            </td>
+                            <td>
+                                <strong>
+                                    Q {{ number_format($venta->vencimientos->sum('vve_monto'), 2) }}
+                                </strong>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+@endif
+
+
 <div class="row">
     <div class="col" style="width:98%">
         <div class="box">
@@ -167,8 +220,12 @@
     </div>
 </div>
 
-<div class="row center">
-    <div class="col" style="width:25%; max-height: 100px;">
-        <img src="data:image/png;base64,{{ $venta->ven_fel_qr }}" alt="" style="width: 100%;">
-    </div>
+
+<div style="text-align: center; margin-top: 8px;">
+    <img
+        src="data:image/png;base64,{{ $venta->ven_fel_qr }}"
+        style="width: 85px; height: 85px;"
+        alt="Código QR FEL"
+    >
 </div>
+
