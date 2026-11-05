@@ -200,7 +200,7 @@ class VentaResource extends Resource
                             ->numeric()
                             ->default(1)
                             ->required()
-                            ->reactive()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(function (Get $get, Set $set) {
                                 $qty = (float) ($get('qty') ?? 0);
                                 $unit = (float) ($get('unit_price') ?? 0);
@@ -214,7 +214,7 @@ class VentaResource extends Resource
                             ->numeric()
                             ->prefix('Q')
                             ->required()
-                            ->reactive()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(function (Get $get, Set $set) {
                                 $qty = (float) ($get('qty') ?? 0);
                                 $unit = (float) ($get('unit_price') ?? 0);
@@ -227,7 +227,7 @@ class VentaResource extends Resource
                             ->columnSpan(3)
                             ->numeric()
                             ->default(0)
-                            ->reactive()
+                            ->live(onBlur: true)
                             ->afterStateUpdated(function (Get $get, Set $set) {
                                 $qty = (float) ($get('qty') ?? 0);
                                 $unit = (float) ($get('unit_price') ?? 0);
@@ -359,7 +359,7 @@ class VentaResource extends Resource
                                 }
 
                                 return new HtmlString(
-                                    '<img src="data:image/png;base64,' . $record->ven_fel_qr . '" 
+                                    '<img src="data:image/png;base64,' . $record->ven_fel_qr . '"
                   style="max-width:200px; border:1px solid #ccc; padding:5px;" />'
                                 );
                             }),
