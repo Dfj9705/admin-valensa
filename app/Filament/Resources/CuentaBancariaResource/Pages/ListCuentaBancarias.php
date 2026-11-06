@@ -34,13 +34,17 @@ class ListCuentaBancarias extends ListRecords
                         ->default(now())
                         ->afterOrEqual('desde'),
                 ])
-                ->action(
-                    fn(array $data) =>
-                        redirect()->route('reportes.cuentas-bancarias', [
-                            'desde' => $data['desde'],
-                            'hasta' => $data['hasta'],
-                        ])
-                ),
+
+                ->action(function (array $data, $livewire) {
+                    $url = route('reportes.cuentas-bancarias', [
+                        'desde' => $data['desde'],
+                        'hasta' => $data['hasta'],
+                    ]);
+
+                    $livewire->js(
+                        'window.open(' . \Illuminate\Support\Js::from($url) . ', "_blank")'
+                    );
+                }),
 
             Actions\CreateAction::make(),
         ];
