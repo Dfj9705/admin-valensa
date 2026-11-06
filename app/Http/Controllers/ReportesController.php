@@ -475,14 +475,10 @@ class ReportesController extends Controller
         $mpdf->WriteHTML($html);
 
         return response(
-            $mpdf->Output('saldos_bancarios.pdf', 'S'),
+            $mpdf->Output('saldos_bancarios.pdf', 'I'),
             200
         )
-            ->header('Content-Type', 'application/pdf')
-            ->header(
-                'Content-Disposition',
-                'inline; filename="saldos_bancarios.pdf"'
-            );
+            ->header('Content-Type', 'application/pdf');
     }
 
 }
