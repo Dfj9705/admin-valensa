@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Blade;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -9,6 +10,7 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -62,6 +64,21 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn(): string => Blade::render(<<<'HTML'
+        <script>
+            document.addEventListener('wheel', function () {
+                const input = document.activeElement;
+
+                if (input instanceof HTMLInputElement && input.type === 'number') {
+                    input.blur();
+                }
+            }, { passive: true });
+        </script>
+    HTML)
+            )
             ->authMiddleware([
                 Authenticate::class,
             ]);
