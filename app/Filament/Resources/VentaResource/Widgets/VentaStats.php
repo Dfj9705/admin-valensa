@@ -33,7 +33,7 @@ class VentaStats extends BaseWidget
 
     public static function canView(): bool
     {
-        return \App\Support\Access::allows('ventas.ver');
+        return \App\Support\Access::allows('ventas.stats');
     }
 
 }
