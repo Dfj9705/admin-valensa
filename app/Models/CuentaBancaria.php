@@ -118,4 +118,29 @@ class CuentaBancaria extends Model
             || $this->gastos()->exists()
             || $this->movimientos()->exists();
     }
+
+    protected static function booted(): void
+    {
+        static::creating(function (CuentaBancaria $cuenta) {
+            if (auth()->check()) {
+                $cuenta->cue_created_by = auth()->id();
+            }
+        });
+
+        static::updating(function (CuentaBancaria $cuenta) {
+            if (auth()->check()) {
+                $cuenta->cue_updated_by = auth()->id();
+            }
+        });
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cue_created_by', 'id');
+    }
+
+    public function updatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'cue_updated_by', 'id');
+    }
 }

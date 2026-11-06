@@ -37,7 +37,7 @@ class Producto extends Model
         return (int) $this->movimientos()
             ->selectRaw("
             COALESCE(SUM(CASE WHEN mop_tipo = 'entrada' THEN mop_cantidad ELSE 0 END), 0)
-            + 
+            +
             COALESCE(SUM(CASE WHEN mop_tipo = 'devolucion' THEN mop_cantidad ELSE 0 END), 0)
             -
             COALESCE(SUM(CASE WHEN mop_tipo = 'salida' THEN mop_cantidad ELSE 0 END), 0)
@@ -50,9 +50,34 @@ class Producto extends Model
 
     protected static function booted(): void
     {
+        // Registrar usuario al crear
+        static::creating(function (Producto $producto) {
+            if (auth()->check()) {
+                $producto->pro_created_by = auth()->id();
+            }
+        });
+
+        // Registrar usuario al modificar
+        static::updating(function (Producto $producto) {
+            if (auth()->check()) {
+                $producto->pro_updated_by = auth()->id();
+            }
+        });
+
+        // Conservar validación de eliminación existente
         static::deleting(function ($record) {
-            if (!(!$record->movimientos()->exists() && !\App\Models\VentaProducto::where('pro_id', $record->getKey())->exists())) {
-                throw \Illuminate\Validation\ValidationException::withMessages(['registro' => 'Este registro tiene historial asociado. Desactívalo en lugar de eliminarlo.']);
+            if (
+                !(
+                    !$record->movimientos()->exists()
+                    && !\App\Models\VentaProducto::where(
+                        'pro_id',
+                        $record->getKey()
+                    )->exists()
+                )
+            ) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'registro' => 'Este registro tiene historial asociado. Desactívalo en lugar de eliminarlo.',
+                ]);
             }
         });
     }

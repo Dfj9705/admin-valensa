@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ProductoMovimiento extends Model
 {
@@ -44,7 +45,7 @@ class ProductoMovimiento extends Model
             if (in_array($this->mop_tipo, ['salida', 'venta'], true)) {
                 // A current locking read avoids an older REPEATABLE READ snapshot.
                 $stock = $producto->movimientos()->lockForUpdate()->get(['mop_tipo', 'mop_cantidad'])
-                    ->sum(fn ($m) => in_array($m->mop_tipo, ['entrada', 'devolucion'], true) ? $m->mop_cantidad : -$m->mop_cantidad);
+                    ->sum(fn($m) => in_array($m->mop_tipo, ['entrada', 'devolucion'], true) ? $m->mop_cantidad : -$m->mop_cantidad);
                 if ($this->mop_cantidad > $stock) {
                     throw \Illuminate\Validation\ValidationException::withMessages(['mop_cantidad' => "Stock insuficiente. Disponible: {$stock}."]);
                 }
@@ -58,6 +59,17 @@ class ProductoMovimiento extends Model
         static::deleting(function () {
             throw \Illuminate\Validation\ValidationException::withMessages(['movimiento' => 'El historial es inmutable. Registra un movimiento de compensación.']);
         });
+
+        static::creating(function (ProductoMovimiento $movimiento) {
+            if (auth()->check()) {
+                $movimiento->mop_created_by = auth()->id();
+            }
+        });
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'mop_created_by', 'id');
     }
 
 }
