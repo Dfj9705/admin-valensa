@@ -107,10 +107,9 @@ class MovimientosRelationManager extends RelationManager
                         return $data;
                     })->visible(
                         fn() =>
-                            true
-                        //Access::allows('movimientos_bancarios.crear') || Auth::user()->hasRole('superadministrador')
+                            Access::allows('movimientos_bancarios.crear') || Auth::user()->hasRole('superadministrador')
                     )
-                    ->authorize('create'),
+                // ->authorize('create'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make()
