@@ -24,6 +24,7 @@ class RolesAndPermissionsSeeder extends Seeder
                 'confirmar',
                 'certificar',
                 'anular',
+                'stats'
             ],
             'pagos' => [
                 'ver',
@@ -145,7 +146,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'clientes',
         ] as $modulo) {
             foreach ($modulos[$modulo] as $accion) {
-                if ($accion !== 'eliminar') {
+                if ($accion !== 'eliminar' && $accion !== 'stats') {
                     $permisosVendedor[] = "{$modulo}.{$accion}";
                 }
             }

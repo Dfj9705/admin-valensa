@@ -12,7 +12,7 @@ class VentaStats extends BaseWidget
     protected int|string|array $columnSpan = '3';
     protected function getStats(): array
     {
-        \App\Support\Access::authorize('ventas.ver');
+        \App\Support\Access::authorize('ventas.stats');
 
         $totalVentas = Venta::whereIn('ven_estado', ['confirmed', 'certified'])->sum('ven_total');
         $pagado = Venta::join('venta_pagos', 'ventas.ven_id', '=', 'venta_pagos.ven_id')->whereIn('ven_estado', ['confirmed', 'certified'])->sum('vpa_monto');
@@ -31,6 +31,9 @@ class VentaStats extends BaseWidget
         ]);
     }
 
-    public static function canView(): bool { return \App\Support\Access::allows('ventas.ver'); }
+    public static function canView(): bool
+    {
+        return \App\Support\Access::allows('ventas.ver');
+    }
 
 }
