@@ -46,7 +46,9 @@ class VentaStats extends BaseWidget
             ? round($porcentaje, 2)
             : null;
         $pagado = Venta::join('venta_pagos', 'ventas.ven_id', '=', 'venta_pagos.ven_id')->whereIn('ven_estado', ['confirmed', 'certified'])->sum('vpa_monto');
-        $pendiente = $totalVentas - $pagado;
+        $totalVentasParaPendiente = Venta::whereIn('ven_estado', ['confirmed', 'certified'])->sum('ven_total');
+
+        $pendiente = $totalVentasParaPendiente - $pagado;
         $canSeeExpenses = \App\Support\Access::allows('gastos.ver');
         $gastos = $canSeeExpenses ? Gasto::sum('gas_monto') : 0;
         $ingresosHoy = Venta::join('venta_pagos', 'ventas.ven_id', '=', 'venta_pagos.ven_id')->whereIn('ven_estado', ['confirmed', 'certified'])->whereDate('vpa_fecha', today())->sum('vpa_monto');
