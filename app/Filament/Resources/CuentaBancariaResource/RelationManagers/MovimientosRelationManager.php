@@ -9,6 +9,8 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use App\Support\Access;
 use App\Models\MovimientoBancario;
@@ -105,7 +107,7 @@ class MovimientosRelationManager extends RelationManager
                         return $data;
                     })->visible(
                         fn() =>
-                            Access::allows('movimientos_bancarios.crear')
+                            Access::allows('movimientos_bancarios.crear') || Auth::user()->hasRole('superadministrador')
                     )
                     ->authorize('create'),
             ])
