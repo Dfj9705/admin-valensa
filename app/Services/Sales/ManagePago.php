@@ -8,6 +8,9 @@ use App\Support\Access;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Models\CuentaBancaria;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 
 class ManagePago
 {
@@ -20,6 +23,25 @@ class ManagePago
         return DB::transaction(function () use ($venta, $data, $pago) {
             $venta = Venta::whereKey($venta->getKey())->lockForUpdate()->firstOrFail();
             $this->validateState($venta);
+
+            Validator::make($data, [
+                'cue_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('cuentas_bancarias', 'cue_id')
+                        ->where('cue_activa', true),
+                ],
+            ])->validate();
+
+            $cuenta = CuentaBancaria::query()
+                ->with('banco')
+                ->find($data['cue_id']);
+
+            if (!$cuenta || !$cuenta->banco?->ban_activo) {
+                throw ValidationException::withMessages([
+                    'cue_id' => 'Selecciona una cuenta bancaria con banco activo.',
+                ]);
+            }
             $payments = $venta->pagos()->lockForUpdate()->get();
             if ($pago) {
                 $pago = $payments->firstWhere('vpa_id', $pago->getKey());
@@ -30,7 +52,7 @@ class ManagePago
             if ($amount <= 0 || round($paid + $amount, 2) > round((float) $venta->ven_total, 2)) {
                 throw ValidationException::withMessages(['vpa_monto' => 'El monto debe ser positivo y no exceder el saldo pendiente.']);
             }
-            $data = Arr::only($data, ['vpa_monto', 'vpa_metodo', 'vpa_referencia', 'vpa_fecha']);
+            $data = Arr::only($data, ['vpa_monto', 'vpa_metodo', 'vpa_referencia', 'vpa_fecha', 'cue_id']);
             $data['vpa_monto'] = $amount;
             $data['vpa_updated_by'] = auth()->id();
             if ($pago) {
@@ -58,7 +80,7 @@ class ManagePago
 
     private function validateState(Venta $venta): void
     {
-        if (! in_array($venta->ven_estado, ['draft', 'confirmed', 'certified'], true)) {
+        if (!in_array($venta->ven_estado, ['draft', 'confirmed', 'certified'], true)) {
             throw ValidationException::withMessages(['venta' => 'No se pueden modificar pagos de una venta anulada.']);
         }
     }

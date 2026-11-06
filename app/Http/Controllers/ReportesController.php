@@ -10,6 +10,8 @@ use App\Models\Venta;
 use App\Models\VentaPago;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\CuentaBancaria;
+use Illuminate\Validation\Rule;
 use Mpdf\Mpdf;
 
 class ReportesController extends Controller
@@ -310,4 +312,177 @@ class ReportesController extends Controller
         return response($mpdf->Output('catalogo.pdf', 'I'), 200)
             ->header('Content-Type', 'application/pdf');
     }
+
+
+    public function cuentasBancarias(Request $request)
+    {
+        \App\Support\Access::authorize('reportes.ver');
+        \App\Support\Access::authorize('reportes.exportar');
+
+        $data = $request->validate([
+            'desde' => ['required', 'date'],
+            'hasta' => ['required', 'date', 'after_or_equal:desde'],
+            'cue_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('cuentas_bancarias', 'cue_id'),
+            ],
+        ]);
+
+        $desde = \Carbon\Carbon::parse($data['desde'])->toDateString();
+        $hasta = \Carbon\Carbon::parse($data['hasta'])->toDateString();
+        $cueId = $data['cue_id'] ?? null;
+
+        $cuentas = CuentaBancaria::query()
+            ->with('banco')
+            ->when(
+                $cueId !== null,
+                fn($query) => $query->where('cue_id', $cueId)
+            )
+            ->orderBy('ban_id')
+            ->orderBy('cue_nombre')
+            ->get()
+            ->map(function (CuentaBancaria $cuenta) use ($desde, $hasta) {
+
+                $inicio = $cuenta->cue_fecha_inicio?->toDateString();
+
+                // Una cuenta sin fecha de inicio no puede
+                // calcular correctamente su saldo histórico.
+                if (!$inicio) {
+                    $cuenta->reporte_disponible = false;
+                    return $cuenta;
+                }
+
+                $cuenta->reporte_disponible = true;
+
+                // La cuenta todavía no había iniciado
+                // operaciones durante el período solicitado.
+                if ($hasta < $inicio) {
+                    $cuenta->saldo_inicial_periodo = 0;
+                    $cuenta->ingresos_ventas = 0;
+                    $cuenta->otros_ingresos = 0;
+                    $cuenta->egresos_gastos = 0;
+                    $cuenta->otros_egresos = 0;
+                    $cuenta->total_ingresos = 0;
+                    $cuenta->total_egresos = 0;
+                    $cuenta->saldo_final = 0;
+                    return $cuenta;
+                }
+
+                // Saldo de apertura del período.
+                // Si el período comienza antes de la apertura
+                // de la cuenta, se incorpora el saldo inicial.
+                $saldoInicial = (float) $cuenta->cue_saldo_inicial;
+
+                if ($desde > $inicio) {
+                    $pagosAnteriores = (float) $cuenta->pagos()
+                        ->whereDate('vpa_fecha', '>=', $inicio)
+                        ->whereDate('vpa_fecha', '<', $desde)
+                        ->sum('vpa_monto');
+
+                    $gastosAnteriores = (float) $cuenta->gastos()
+                        ->whereDate('gas_fecha', '>=', $inicio)
+                        ->whereDate('gas_fecha', '<', $desde)
+                        ->sum('gas_monto');
+
+                    $otrosIngresosAnteriores = (float) $cuenta->movimientos()
+                        ->where('mov_tipo', 'ingreso')
+                        ->whereDate('mov_fecha', '>=', $inicio)
+                        ->whereDate('mov_fecha', '<', $desde)
+                        ->sum('mov_monto');
+
+                    $otrosEgresosAnteriores = (float) $cuenta->movimientos()
+                        ->where('mov_tipo', 'egreso')
+                        ->whereDate('mov_fecha', '>=', $inicio)
+                        ->whereDate('mov_fecha', '<', $desde)
+                        ->sum('mov_monto');
+
+                    $saldoInicial +=
+                        $pagosAnteriores
+                        + $otrosIngresosAnteriores
+                        - $gastosAnteriores
+                        - $otrosEgresosAnteriores;
+                }
+
+                // No incluir operaciones anteriores a la
+                // fecha de apertura contable de la cuenta.
+                $desdeEfectivo = max($desde, $inicio);
+
+                $ingresosVentas = (float) $cuenta->pagos()
+                    ->whereDate('vpa_fecha', '>=', $desdeEfectivo)
+                    ->whereDate('vpa_fecha', '<=', $hasta)
+                    ->sum('vpa_monto');
+
+                $egresosGastos = (float) $cuenta->gastos()
+                    ->whereDate('gas_fecha', '>=', $desdeEfectivo)
+                    ->whereDate('gas_fecha', '<=', $hasta)
+                    ->sum('gas_monto');
+
+                $otrosIngresos = (float) $cuenta->movimientos()
+                    ->where('mov_tipo', 'ingreso')
+                    ->whereDate('mov_fecha', '>=', $desdeEfectivo)
+                    ->whereDate('mov_fecha', '<=', $hasta)
+                    ->sum('mov_monto');
+
+                $otrosEgresos = (float) $cuenta->movimientos()
+                    ->where('mov_tipo', 'egreso')
+                    ->whereDate('mov_fecha', '>=', $desdeEfectivo)
+                    ->whereDate('mov_fecha', '<=', $hasta)
+                    ->sum('mov_monto');
+
+                $cuenta->saldo_inicial_periodo = round($saldoInicial, 2);
+                $cuenta->ingresos_ventas = round($ingresosVentas, 2);
+                $cuenta->otros_ingresos = round($otrosIngresos, 2);
+                $cuenta->egresos_gastos = round($egresosGastos, 2);
+                $cuenta->otros_egresos = round($otrosEgresos, 2);
+
+                $cuenta->total_ingresos = round(
+                    $ingresosVentas + $otrosIngresos,
+                    2
+                );
+
+                $cuenta->total_egresos = round(
+                    $egresosGastos + $otrosEgresos,
+                    2
+                );
+
+                $cuenta->saldo_final = round(
+                    $saldoInicial
+                    + $cuenta->total_ingresos
+                    - $cuenta->total_egresos,
+                    2
+                );
+
+                return $cuenta;
+            });
+
+        $html = view('pdf.cuentas_bancarias', compact(
+            'cuentas',
+            'desde',
+            'hasta'
+        ))->render();
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4-L',
+            'margin_top' => 15,
+            'margin_bottom' => 15,
+            'margin_left' => 10,
+            'margin_right' => 10,
+        ]);
+
+        $mpdf->SetTitle('Reporte de Saldos Bancarios');
+        $mpdf->WriteHTML($html);
+
+        return response(
+            $mpdf->Output('saldos_bancarios.pdf', 'S'),
+            200
+        )
+            ->header('Content-Type', 'application/pdf')
+            ->header(
+                'Content-Disposition',
+                'inline; filename="saldos_bancarios.pdf"'
+            );
+    }
+
 }

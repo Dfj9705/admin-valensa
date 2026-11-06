@@ -90,6 +90,27 @@ class RolesAndPermissionsSeeder extends Seeder
                 'editar',
                 'eliminar',
             ],
+
+            'bancos' => [
+                'ver',
+                'crear',
+                'editar',
+                'eliminar',
+            ],
+
+            'cuentas_bancarias' => [
+                'ver',
+                'crear',
+                'editar',
+                'eliminar',
+            ],
+
+            'movimientos_bancarios' => [
+                'ver',
+                'crear',
+                'editar',
+                'eliminar',
+            ],
         ];
 
         // Crear permisos sin duplicarlos

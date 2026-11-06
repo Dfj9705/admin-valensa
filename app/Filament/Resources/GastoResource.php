@@ -25,6 +25,8 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\CuentaBancaria;
+use Illuminate\Validation\Rule;
 
 class GastoResource extends Resource
 {
@@ -62,12 +64,12 @@ class GastoResource extends Resource
                         ->relationship('categoria', 'cat_nombre')
                         ->searchable()
                         ->preload()
-                        ->createOptionAction(fn ($action) => $action->authorize(fn () => \App\Support\Access::allows('categorias_gastos.crear')))
-                            ->createOptionUsing(function (array $data) {
-                                \App\Support\Access::authorize('categorias_gastos.crear');
-                                return \App\Models\CategoriaGasto::create($data)->getKey();
-                            })
-                            ->createOptionForm([
+                        ->createOptionAction(fn($action) => $action->authorize(fn() => \App\Support\Access::allows('categorias_gastos.crear')))
+                        ->createOptionUsing(function (array $data) {
+                            \App\Support\Access::authorize('categorias_gastos.crear');
+                            return \App\Models\CategoriaGasto::create($data)->getKey();
+                        })
+                        ->createOptionForm([
                             TextInput::make('cat_nombre')
                                 ->label('Nombre')
                                 ->required()
@@ -83,6 +85,32 @@ class GastoResource extends Resource
                         ->prefix('Q')
                         ->numeric()
                         ->required(),
+
+                    Select::make('cue_id')
+                        ->label('Cuenta bancaria de origen')
+                        ->relationship(
+                            name: 'cuentaBancaria',
+                            titleAttribute: 'cue_nombre',
+                            modifyQueryUsing: fn(Builder $query) =>
+                                $query
+                                    ->where('cue_activa', true)
+                                    ->whereHas(
+                                        'banco',
+                                        fn(Builder $q) =>
+                                            $q->where('ban_activo', true)
+                                    )
+                        )
+                        ->getOptionLabelFromRecordUsing(
+                            fn(CuentaBancaria $record): string =>
+                                "{$record->banco->ban_nombre} - {$record->cue_nombre} ({$record->cue_numero})"
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->rules([
+                            Rule::exists('cuentas_bancarias', 'cue_id')
+                                ->where('cue_activa', true),
+                        ]),
 
                     TextInput::make('gas_referencia')
                         ->label('Referencia (opcional)')
@@ -128,6 +156,16 @@ class GastoResource extends Resource
                     ->money('GTQ', locale: 'es_GT')
                     ->sortable(),
 
+                TextColumn::make('cuentaBancaria.cue_nombre')
+                    ->label('Cuenta bancaria')
+                    ->description(
+                        fn(Gasto $record) =>
+                            $record->cuentaBancaria?->banco?->ban_nombre
+                    )
+                    ->placeholder('Sin asignar')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('gas_referencia')
                     ->label('Ref.')
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -143,6 +181,12 @@ class GastoResource extends Resource
                 SelectFilter::make('cat_id')
                     ->label('Categoría')
                     ->relationship('categoria', 'cat_nombre'),
+
+                SelectFilter::make('cue_id')
+                    ->label('Cuenta bancaria')
+                    ->relationship('cuentaBancaria', 'cue_nombre')
+                    ->searchable()
+                    ->preload(),
 
                 Filter::make('rango_fechas')
                     ->form([
@@ -188,14 +232,41 @@ class GastoResource extends Resource
         ];
     }
 
-    public static function canViewAny(): bool { return \App\Support\Access::allows('gastos.ver'); }
-    public static function canView($record): bool { return static::canViewAny(); }
-    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('gastos.crear'); }
-    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('gastos.editar'); }
-    public static function canDelete($record): bool { return static::canDeleteAny() && true; }
-    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('gastos.eliminar'); }
-    public static function canForceDelete($record): bool { return false; }
-    public static function canForceDeleteAny(): bool { return false; }
-    public static function canReplicate($record): bool { return false; }
+    public static function canViewAny(): bool
+    {
+        return \App\Support\Access::allows('gastos.ver');
+    }
+    public static function canView($record): bool
+    {
+        return static::canViewAny();
+    }
+    public static function canCreate(): bool
+    {
+        return static::canViewAny() && \App\Support\Access::allows('gastos.crear');
+    }
+    public static function canEdit($record): bool
+    {
+        return static::canViewAny() && \App\Support\Access::allows('gastos.editar');
+    }
+    public static function canDelete($record): bool
+    {
+        return static::canDeleteAny() && true;
+    }
+    public static function canDeleteAny(): bool
+    {
+        return static::canViewAny() && \App\Support\Access::allows('gastos.eliminar');
+    }
+    public static function canForceDelete($record): bool
+    {
+        return false;
+    }
+    public static function canForceDeleteAny(): bool
+    {
+        return false;
+    }
+    public static function canReplicate($record): bool
+    {
+        return false;
+    }
 
 }

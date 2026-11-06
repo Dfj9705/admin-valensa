@@ -24,6 +24,7 @@ class VentaPago extends Model
         'vpa_fecha',
         'vpa_created_by',
         'vpa_updated_by',
+        'cue_id',
     ];
 
     protected $casts = [
@@ -34,5 +35,14 @@ class VentaPago extends Model
     public function venta(): BelongsTo
     {
         return $this->belongsTo(Venta::class, 'ven_id', 'ven_id');
+    }
+
+    public function cuentaBancaria(): BelongsTo
+    {
+        return $this->belongsTo(
+            CuentaBancaria::class,
+            'cue_id',
+            'cue_id'
+        );
     }
 }

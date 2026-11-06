@@ -22,6 +22,7 @@ class Gasto extends Model
         'gas_referencia',
         'gas_monto',
         'cat_id',
+        'cue_id',
         'creado_por',
     ];
 
@@ -33,5 +34,14 @@ class Gasto extends Model
     public function categoria(): BelongsTo
     {
         return $this->belongsTo(CategoriaGasto::class, 'cat_id');
+    }
+
+    public function cuentaBancaria(): BelongsTo
+    {
+        return $this->belongsTo(
+            CuentaBancaria::class,
+            'cue_id',
+            'cue_id'
+        );
     }
 }

@@ -38,3 +38,15 @@ Route::get('/reportes/catalogo', [ReportesController::class, 'catalogo'])
 Route::get('/reportes/deudores', [ReportesController::class, 'deudores'])
     ->middleware(['web', 'auth', 'can:reportes.ver', 'can:reportes.exportar'])
     ->name('reportes.deudores');
+
+Route::get('/reportes/cuentas-bancarias', [
+    ReportesController::class,
+    'cuentasBancarias'
+])
+    ->middleware([
+        'web',
+        'auth',
+        'can:reportes.ver',
+        'can:reportes.exportar',
+    ])
+    ->name('reportes.cuentas-bancarias');
