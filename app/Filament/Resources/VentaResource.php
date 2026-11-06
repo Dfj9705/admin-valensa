@@ -71,7 +71,7 @@ class VentaResource extends Resource
                             ->options(function () {
                                 return Cliente::where('cli_activo', true)->pluck('cli_nombre', 'cli_id');
                             })
-                            ->createOptionAction(fn ($action) => $action->authorize(fn () => \App\Support\Access::allows('clientes.crear')))
+                            ->createOptionAction(fn($action) => $action->authorize(fn() => \App\Support\Access::allows('clientes.crear')))
                             ->createOptionUsing(function (array $data) {
                                 \App\Support\Access::authorize('clientes.crear');
                                 return \App\Models\Cliente::create($data)->getKey();
@@ -534,14 +534,41 @@ class VentaResource extends Resource
         ];
     }
 
-    public static function canViewAny(): bool { return \App\Support\Access::allows('ventas.ver'); }
-    public static function canView($record): bool { return static::canViewAny(); }
-    public static function canCreate(): bool { return static::canViewAny() && \App\Support\Access::allows('ventas.crear'); }
-    public static function canEdit($record): bool { return static::canViewAny() && \App\Support\Access::allows('ventas.editar'); }
-    public static function canDelete($record): bool { return static::canDeleteAny() && $record->ven_estado === 'draft' && empty($record->ven_fel_uuid) && !$record->pagos()->exists() && !$record->vencimientos()->exists() && !\App\Models\ProductoMovimiento::where('mop_referencia_tipo', 'VENTA')->where('mop_referencia_id', $record->getKey())->exists(); }
-    public static function canDeleteAny(): bool { return static::canViewAny() && \App\Support\Access::allows('ventas.eliminar'); }
-    public static function canForceDelete($record): bool { return false; }
-    public static function canForceDeleteAny(): bool { return false; }
-    public static function canReplicate($record): bool { return false; }
+    public static function canViewAny(): bool
+    {
+        return \App\Support\Access::allows('ventas.ver');
+    }
+    public static function canView($record): bool
+    {
+        return static::canViewAny();
+    }
+    public static function canCreate(): bool
+    {
+        return static::canViewAny() && \App\Support\Access::allows('ventas.crear');
+    }
+    public static function canEdit($record): bool
+    {
+        return static::canViewAny() && \App\Support\Access::allows('ventas.editar');
+    }
+    public static function canDelete($record): bool
+    {
+        return static::canDeleteAny() && $record->ven_estado === 'draft' && empty($record->ven_fel_uuid) && !$record->pagos()->exists() && !$record->vencimientos()->exists() && !\App\Models\ProductoMovimiento::where('mop_referencia_tipo', 'VENTA')->where('mop_referencia_id', $record->getKey())->exists();
+    }
+    public static function canDeleteAny(): bool
+    {
+        return static::canViewAny() && \App\Support\Access::allows('ventas.eliminar');
+    }
+    public static function canForceDelete($record): bool
+    {
+        return false;
+    }
+    public static function canForceDeleteAny(): bool
+    {
+        return false;
+    }
+    public static function canReplicate($record): bool
+    {
+        return false;
+    }
 
 }
