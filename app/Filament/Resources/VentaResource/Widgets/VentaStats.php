@@ -57,12 +57,28 @@ class VentaStats extends BaseWidget
         return array_filter([
 
             Stat::make(
-                "Ventas del trimestre {$trimestre}",
+                'Ventas del trimestre ' . now()->quarter,
                 'Q ' . number_format($totalVentas, 2)
             )
-                ->description('Ventas confirmadas y certificadas')
-                ->descriptionIcon('heroicon-m-currency-dollar')
-                ->color('success'),
+                ->description(
+                    $porcentaje === null
+                    ? 'Sin ventas en el trimestre anterior'
+                    : ($porcentaje >= 0 ? '+' : '') .
+                    number_format($porcentaje, 2) .
+                    '% respecto al trimestre anterior'
+                )
+                ->descriptionIcon(
+                    $porcentaje === null
+                    ? 'heroicon-m-minus'
+                    : ($porcentaje >= 0
+                        ? 'heroicon-m-arrow-trending-up'
+                        : 'heroicon-m-arrow-trending-down')
+                )
+                ->color(
+                    $porcentaje === null
+                    ? 'gray'
+                    : ($porcentaje >= 0 ? 'success' : 'danger')
+                ),
             // Stat::make('Pagado', 'Q ' . number_format($pagado, 2))->icon('heroicon-o-currency-dollar')->color('success'),
             Stat::make('Pendiente', 'Q ' . number_format($pendiente, 2))->icon('heroicon-o-currency-dollar')->color('danger'),
             // $canSeeExpenses ? Stat::make('Gastos', 'Q ' . number_format($gastos, 2))->icon('heroicon-o-currency-dollar')->color('danger') : null,
