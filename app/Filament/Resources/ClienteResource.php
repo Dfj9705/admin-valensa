@@ -51,7 +51,7 @@ class ClienteResource extends Resource
     {
         return [
             'cli_nit',
-            'cli_clui',
+            'cli_cui',
             'cli_nombre',
         ];
     }
