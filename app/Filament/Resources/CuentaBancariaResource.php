@@ -18,8 +18,8 @@ class CuentaBancariaResource extends Resource
     protected static ?string $model = CuentaBancaria::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
-    protected static ?string $navigationGroup = 'Configuración';
-    protected static ?int $navigationSort = 7;
+    protected static ?string $navigationGroup = 'Maquinaria y equipo';
+    protected static ?int $navigationSort = 1;
     protected static ?string $navigationLabel = 'Cuentas bancarias';
     protected static ?string $modelLabel = 'Cuenta bancaria';
     protected static ?string $pluralModelLabel = 'Cuentas bancarias';
