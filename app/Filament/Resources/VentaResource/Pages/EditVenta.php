@@ -43,23 +43,28 @@ class EditVenta extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make()->icon('heroicon-o-trash')->color('danger')->visible(fn () => $this->record->ven_estado === 'draft'),
+            DeleteAction::make()->icon('heroicon-o-trash')->color('danger')->visible(fn() => $this->record->ven_estado === 'draft'),
             Action::make('confirm')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.confirmar'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.confirmar'))
                 ->label('Confirmar venta')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn () => $this->record->ven_estado === 'draft')
+                ->visible(fn() => $this->record->ven_estado === 'draft')
                 ->action(function () {
                     try {
-                        app(ConfirmVenta::class)->handle($this->record, auth()->id());
+                        $venta = app(ConfirmVenta::class)->handle(
+                            $this->record,
+                            auth()->id()
+                        );
 
-                        Notification::make()
-                            ->title('Venta confirmada')
-                            ->success()
-                            ->send();
+                        // Sincronizar el registro de Filament
+                        $this->record->setRawAttributes(
+                            $venta->getAttributes(),
+                            true
+                        );
 
+                        // Actualizar los campos del formulario
                         $this->refreshFormData([
                             'ven_estado',
                             'ven_subtotal',
@@ -67,6 +72,12 @@ class EditVenta extends EditRecord
                             'ven_total',
                             'ven_confirmed_at',
                         ]);
+
+                        Notification::make()
+                            ->title('Venta confirmada')
+                            ->success()
+                            ->send();
+
                     } catch (Throwable $e) {
                         Notification::make()
                             ->title('No se pudo confirmar')
@@ -76,11 +87,11 @@ class EditVenta extends EditRecord
                     }
                 }),
             Action::make('cotizacion')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.ver'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.ver'))
                 ->label('Imprimir Cotización')
                 ->color('primary')
                 ->icon('heroicon-o-printer')
-                ->visible(fn () => $this->record->ven_estado === 'draft')
+                ->visible(fn() => $this->record->ven_estado === 'draft')
                 ->action(function () {
                     $venta = $this->record;
                     $mpdf = new Mpdf([
@@ -107,11 +118,11 @@ class EditVenta extends EditRecord
                     return Storage::disk('local')->download($relativePath);
                 }),
             Action::make('print')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.ver'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.ver'))
                 ->label('Imprimir Recibo')
                 ->color('primary')
                 ->icon('heroicon-o-printer')
-                ->visible(fn () => $this->record->ven_estado === 'confirmed')
+                ->visible(fn() => $this->record->ven_estado === 'confirmed')
                 ->action(function () {
                     $venta = $this->record;
                     $mpdf = new Mpdf([
@@ -136,12 +147,12 @@ class EditVenta extends EditRecord
                     return Storage::disk('local')->download($relativePath);
                 }),
             Action::make('certify')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.certificar'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.certificar'))
                 ->label('Certificar FEL')
                 ->icon('heroicon-o-check-circle')
                 ->color('info')
                 ->requiresConfirmation()
-                ->visible(fn () => $this->record->ven_estado === 'confirmed' && empty($this->record->ven_fel_uuid))
+                ->visible(fn() => $this->record->ven_estado === 'confirmed' && empty($this->record->ven_fel_uuid))
                 ->action(function () {
                     return \Illuminate\Support\Facades\DB::transaction(function () {
                         $current = \App\Models\Venta::whereKey($this->record->getKey())->lockForUpdate()->firstOrFail();
@@ -162,7 +173,7 @@ class EditVenta extends EditRecord
                             logger($resultRaw->NumeroAutorizacion);
                             logger($resultado->error);
                             if ($resultado->error == 1) {
-                                logger('Error al certificar factura: '.json_encode($resultado->frases));
+                                logger('Error al certificar factura: ' . json_encode($resultado->frases));
                                 $messages = $resultado->frases;
                                 foreach ($messages as $message) {
                                     Notification::make()
@@ -206,7 +217,7 @@ class EditVenta extends EditRecord
 
                             logger($uuid);
 
-                            if (! $uuid) {
+                            if (!$uuid) {
                                 // si no logramos extraerlo, marca error para revisar
                                 $venta->update(['ven_fel_status' => 'error']);
                                 Notification::make()->title('FEL no retornó UUID')->danger()->send();
@@ -248,11 +259,11 @@ class EditVenta extends EditRecord
                 }),
 
             Action::make('download_pdf')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.ver'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.ver'))
                 ->label('Imprimir Factura')
                 ->icon('heroicon-o-document-text')
                 ->color('info')
-                ->visible(fn () => $this->record->ven_fel_status === 'certified' && $this->record->ven_estado === 'certified')
+                ->visible(fn() => $this->record->ven_fel_status === 'certified' && $this->record->ven_estado === 'certified')
                 ->action(function () {
                     $venta = $this->record;
                     $html = view('pdf.factura', compact('venta'))->render();
@@ -284,7 +295,7 @@ class EditVenta extends EditRecord
                 }),
 
             Action::make('anulation')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.anular'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.anular'))
                 ->label('Anular factura')
                 ->color('danger')
                 ->icon('heroicon-o-no-symbol')
@@ -295,7 +306,7 @@ class EditVenta extends EditRecord
                         ->required()
                         ->maxLength(255),
                 ])
-                ->visible(fn () => $this->record->ven_estado === 'certified' && ! empty($this->record->ven_fel_uuid))
+                ->visible(fn() => $this->record->ven_estado === 'certified' && !empty($this->record->ven_fel_uuid))
                 ->action(function ($data) {
                     return \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
                         $current = \App\Models\Venta::whereKey($this->record->getKey())->lockForUpdate()->firstOrFail();
@@ -381,11 +392,11 @@ class EditVenta extends EditRecord
                 }),
 
             Action::make('Imprimir anulación')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.ver'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.ver'))
                 ->label('Imprimir anulación')
                 ->color('info')
                 ->icon('heroicon-o-printer')
-                ->visible(fn () => $this->record->ven_estado === 'cancelled' && ! empty($this->record->ven_fel_uuid))
+                ->visible(fn() => $this->record->ven_estado === 'cancelled' && !empty($this->record->ven_fel_uuid))
                 ->action(function () {
                     $venta = $this->record;
                     $html = view('pdf.factura', compact('venta'))->render();
@@ -428,15 +439,15 @@ class EditVenta extends EditRecord
     {
         return [
             Action::make('save')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.editar'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.editar'))
                 ->label('Guardar cambios')
                 ->color('primary')
-                ->visible(fn () => $this->record->ven_estado === 'draft')
+                ->visible(fn() => $this->record->ven_estado === 'draft')
                 ->action(function () {
                     $this->save();
                 }),
             Action::make('cancel')
-                ->authorize(fn () => \App\Support\Access::allows('ventas.ver'))
+                ->authorize(fn() => \App\Support\Access::allows('ventas.ver'))
                 ->label('Cancelar')
                 ->color('danger')
                 ->action(function () {
