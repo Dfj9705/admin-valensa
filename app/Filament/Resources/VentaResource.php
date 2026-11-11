@@ -437,6 +437,21 @@ class VentaResource extends Resource
             ->columns([
                 TextColumn::make('ven_id')->label('#')->sortable(),
                 TextColumn::make('cliente.cli_nombre')->label('Cliente')->searchable(),
+                TextColumn::make('ven_tipo_dte')->label('Tipo Documento FEL')->sortable()->badge()
+                    ->formatStateUsing(
+                        fn(string $state): string => match ($state) {
+                            'FACT' => 'FACTURA',
+                            'FCAM' => 'FACT. CAMBIARIA',
+                            default => 'NO CERT.',
+                        }
+                    )
+                    ->color(
+                        fn(string $state): string => match ($state) {
+                            'FACT' => 'info',
+                            'FCAM' => 'success',
+                            default => 'gray',
+                        }
+                    ),
                 TextColumn::make('ven_estado')->label('Estado')->sortable()->badge()->color(function ($state) {
                     switch ($state) {
                         case 'draft':
